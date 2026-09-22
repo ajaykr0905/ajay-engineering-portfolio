@@ -13,6 +13,7 @@ export function SiteFooter() {
           <a href={siteConfig.gmailComposeUrl} rel="noreferrer" target="_blank">Gmail</a>
           <a href={siteConfig.linkedin} rel="noreferrer">LinkedIn</a>
           <a href={siteConfig.github} rel="noreferrer">GitHub</a>
+          <a href={siteConfig.website} rel="noreferrer">Website</a>
           <Link href="/resume">Résumé</Link>
         </div>
       </div>

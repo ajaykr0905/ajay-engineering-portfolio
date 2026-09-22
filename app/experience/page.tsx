@@ -24,6 +24,7 @@ export default function ExperiencePage() {
               <div className="timeline-meta">
                 <p className="role-title">{item.role}</p>
                 <p>{item.company}</p>
+                <p>{item.product}</p>
                 <p>{item.period}</p>
                 <p>{item.location}</p>
               </div>

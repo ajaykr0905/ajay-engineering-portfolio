@@ -67,6 +67,7 @@ export default function HomePage() {
             <div>
               <p className="role-title">{experience[0].role}</p>
               <p className="role-meta">{experience[0].company} · {experience[0].period}</p>
+              <p className="role-meta">{experience[0].product}</p>
             </div>
             <div>
               <p className="experience-summary">{experience[0].summary}</p>

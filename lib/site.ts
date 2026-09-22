@@ -6,6 +6,7 @@ export const siteConfig = {
     "I build backend and AI projects that recruiters and engineers can inspect, run locally, and verify through tests.",
   location: "Bengaluru, India",
   url: "https://ajaykr-engineering-portfolio.vercel.app",
+  website: "https://ajaykr-engineering-portfolio.vercel.app",
   email: "ajaykumar.rob27@gmail.com",
   emailHref: "mailto:ajaykumar.rob27@gmail.com?subject=Portfolio%20conversation",
   gmailComposeUrl:
