@@ -4,14 +4,18 @@
 
 Publish `ajaykr0905/ajay-engineering-portfolio` first. The project requires no production secrets.
 
-## Existing production URL
+## Production URL
 
-1. Open the Vercel project currently owning `ajay-dev-engineer.vercel.app`.
-2. Change its connected Git repository to `ajaykr0905/ajay-engineering-portfolio`, or import the new repository and move the existing domain to it.
-3. Use the detected Next.js settings and the repository's `pnpm` lockfile.
-4. Keep preview-deployment protection enabled.
-5. Disable authentication protection for the production deployment only.
-6. Deploy the `main` branch.
+The canonical public deployment is:
+
+<https://ajaykr-engineering-portfolio.vercel.app>
+
+It is connected to `ajaykr0905/ajay-engineering-portfolio` and deploys from
+`main`. Keep preview-deployment protection enabled. Production must remain
+accessible without Vercel Authentication.
+
+Do not publish `ajay-dev-engineer.vercel.app` as the portfolio address while it
+redirects signed-out visitors to Vercel login.
 
 ## Public release verification
 

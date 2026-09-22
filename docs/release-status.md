@@ -11,17 +11,26 @@ Verified on 2026-09-22.
 - VoiceMed AI: strict schemas, provider adapters, request boundaries, deterministic no-key mode, human-review gate, 16 unit/contract tests, four browser tests, production build, and a zero-vulnerability npm audit.
 - Canonical GitHub profile README and repository-pinning checklist.
 
+## Public production
+
+- Production URL: <https://ajaykr-engineering-portfolio.vercel.app>
+- Unauthenticated HTTP checks return `200` for the home, experience, writing,
+  résumé, all three project case studies, and résumé PDF routes.
+- GitHub Actions passed the portfolio quality gates for the deployed `main`
+  commit.
+- All five featured repositories are public. Their latest CI runs pass.
+
 ## Not claimed as complete
 
 - Transformer multi-GPU execution, vLLM or SGLang serving, and serving telemetry.
 - RabbitMQ and external PostgreSQL performance benchmarks. The adapter path is implemented and compile-verified; its live Compose test is configured in CI but has not produced a public artifact yet.
 - VoiceMed clinical or provider-model accuracy.
-- Public production deployment or public GitHub repository availability.
+- Separate always-on deployments for the training lab, distributed lab, and AI
+  journey. Their public repositories and portfolio case studies are the current
+  recruiter-facing surfaces.
 
-## External release blockers
+## Release note
 
-- GitHub CLI credentials for `ajaykr0905` are invalid on this machine, so the clean local commits cannot be pushed yet.
-- Vercel deployment tools are unavailable in the current session, so the existing production URL cannot be relinked or its protection policy changed here.
-- Lighthouse Chrome discovery succeeds, but the local audit stalls in this sandbox. The check remains configured as a required CI gate and writes private workflow artifacts rather than uploading reports publicly.
-
-These blockers affect publication, not the verified local builds.
+The older `ajay-dev-engineer.vercel.app` address is protected by Vercel login and
+must not be used in recruiter-facing links. The canonical public address is the
+production URL above.

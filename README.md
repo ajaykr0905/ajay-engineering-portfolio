@@ -2,6 +2,8 @@
 
 Public portfolio for Ajay Kumar Pondugala, positioned around distributed systems and AI infrastructure engineering.
 
+**Production:** [ajaykr-engineering-portfolio.vercel.app](https://ajaykr-engineering-portfolio.vercel.app)
+
 ## Design goals
 
 - Communicate role alignment within ten seconds.
@@ -44,12 +46,10 @@ See the [verified release status](docs/release-status.md) for completed gates an
 
 ## Deployment
 
-1. Connect this repository to the existing `ajay-dev-engineer` Vercel project.
-2. Keep deployment protection enabled for previews only.
-3. Disable Vercel Authentication on the production domain.
-4. Verify the production URL in a signed-out browser before linking it from LinkedIn.
-
-The [Vercel release runbook](docs/vercel-release.md) covers the existing-domain handoff and unauthenticated checks.
+The `main` branch deploys to the public production URL above. Preview deployments
+may remain protected, but the production site must stay accessible without a
+Vercel login. The [Vercel release runbook](docs/vercel-release.md) documents the
+verified routes and recovery checks.
 
 ## Public-safety boundary
 
