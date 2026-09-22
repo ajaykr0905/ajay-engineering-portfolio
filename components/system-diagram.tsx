@@ -4,6 +4,7 @@ const diagramLabels: Record<Project["slug"], string[]> = {
   "fault-tolerant-transformer-lab": ["Dataset + manifest", "Training + checkpoints", "Serving + telemetry", "Evidence artifacts"],
   "distributed-scale-validation-platform": ["Synthetic workload", "Queue + workers", "Idempotent store", "Benchmark report"],
   "voicemed-ai": ["Synthetic speech", "Transcribe + extract", "Human review", "Structured export"],
+  "evidence-first-security-harness": ["Dependency evidence", "OSV + KEV context", "Policy decision", "Human-gated remediation"],
 };
 
 export function SystemDiagram({ project }: { project: Project }) {

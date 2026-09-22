@@ -26,7 +26,7 @@ export default function HomePage() {
       <section className="hero shell">
         <div className="hero-grid">
           <div>
-            <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, and AI engineering roles</p>
+            <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, security, and AI engineering roles</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">

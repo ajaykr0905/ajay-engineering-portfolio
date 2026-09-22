@@ -264,6 +264,88 @@ const projectInput = [
     ],
     lastVerified: "2026-09-22",
   },
+  {
+    slug: "evidence-first-security-harness",
+    title: "Evidence-First Security Harness",
+    eyebrow: "Security automation and vulnerability remediation",
+    summary:
+      "An open-source Go security-platform lab that turns dependency evidence into explainable, reviewable remediation decisions. The current slice queries OSV, enriches findings with optional KEV data, applies deterministic policy, and preserves replayable results.",
+    currentFocus:
+      "Adding CycloneDX SBOM ingestion, durable evidence storage, isolated validation workers, and a constrained security-reasoning agent.",
+    status: "Building",
+    featured: true,
+    roleAlignment: ["Security platform engineering", "Vulnerability management", "AI safety and developer tooling"],
+    stack: ["Go", "OSV", "CISA KEV", "PostgreSQL", "Docker", "OpenTelemetry", "GitHub Actions"],
+    repositoryUrl: "https://github.com/ajaykr0905/evidence-first-security-harness",
+    problem:
+      "A vulnerability list is not yet a remediation decision. The harness connects affected component, source evidence, known-exploitation context, fixed versions, policy rationale, and human approval state.",
+    constraints: [
+      "The public default is read-only and must not probe arbitrary hosts or execute exploit payloads.",
+      "Every recommendation must be explainable from captured source evidence.",
+      "Fixtures and examples must remain synthetic and free of employer code, data, identifiers, or secrets.",
+    ],
+    decisions: [
+      {
+        title: "Evidence before model output",
+        detail:
+          "OSV results and policy decisions are first-class records; future model output can only propose structured actions from that evidence.",
+      },
+      {
+        title: "Deterministic policy boundary",
+        detail:
+          "Known-exploited and fixed-version signals are translated into explicit priorities and rationales before any human-gated automation is introduced.",
+      },
+      {
+        title: "Transport-injected verification",
+        detail:
+          "The OSV client uses injectable HTTP transport so tests are deterministic and do not depend on public network availability.",
+      },
+    ],
+    tradeoffs: [
+      "The current in-memory store keeps the first release easy to run, but it is not a durable multi-user deployment.",
+      "The initial project prioritizes trustworthy evidence flow over automatic patch application.",
+    ],
+    failureModes: [
+      "Malformed or oversized scan input.",
+      "Vulnerability catalog outage or response drift.",
+      "A known exploited alias missed during normalization.",
+      "A remediation recommendation that lacks a fixed version or validation evidence.",
+    ],
+    verification: [
+      "Go unit tests for OSV normalization and fixed-version extraction.",
+      "Policy tests for known-exploited aliases and fixed-version priority.",
+      "Service tests proving results are stored and replayable.",
+      "Go vet and GitHub Actions checks.",
+    ],
+    limitations: [
+      "CycloneDX ingestion, PostgreSQL persistence, isolated validation workers, and the constrained AI agent are planned next slices.",
+      "No production deployment, exploit capability, or automatic repository write is claimed.",
+    ],
+    metrics: [
+      {
+        value: "20",
+        label: "files in the first public slice",
+        method:
+          "The initial human-reviewed Go project includes API, CLI, policy, OSV client, tests, threat model, and CI workflow.",
+        evidenceUrl: "https://github.com/ajaykr0905/evidence-first-security-harness/commit/2caa836",
+      },
+      {
+        value: "3",
+        label: "public scan endpoints",
+        method:
+          "Health, scan submission, and replay endpoints are documented in the repository README.",
+        evidenceUrl: "https://github.com/ajaykr0905/evidence-first-security-harness#current-slice",
+      },
+      {
+        value: "0",
+        label: "employer artifacts",
+        method:
+          "The repository is a clean-room public project using synthetic fixtures and documented security boundaries.",
+        evidenceUrl: "https://github.com/ajaykr0905/evidence-first-security-harness/blob/main/SECURITY.md",
+      },
+    ],
+    lastVerified: "2026-09-23",
+  },
 ] satisfies Project[];
 
 export const projects = z.array(projectSchema).parse(projectInput);
