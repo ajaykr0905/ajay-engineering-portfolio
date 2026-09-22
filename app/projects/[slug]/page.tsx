@@ -47,7 +47,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <p>{project.summary}</p>
         </div>
         <div className="project-header-meta">
-          <StatusPill status={project.status} />
+          <StatusPill
+            projectTitle={project.title}
+            repositoryUrl={project.repositoryUrl}
+            status={project.status}
+          />
           <p>Evidence checked {project.lastVerified}</p>
         </div>
       </header>

@@ -10,7 +10,7 @@ export function SiteFooter() {
           <p className="muted">Built with public-safe evidence and explicit limitations.</p>
         </div>
         <div className="footer-links" aria-label="Contact links">
-          <a href={`mailto:${siteConfig.email}`}>Email</a>
+          <a href={siteConfig.gmailComposeUrl} rel="noreferrer" target="_blank">Gmail</a>
           <a href={siteConfig.linkedin} rel="noreferrer">LinkedIn</a>
           <a href={siteConfig.github} rel="noreferrer">GitHub</a>
           <Link href="/resume">Résumé</Link>

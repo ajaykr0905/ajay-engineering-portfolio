@@ -1,5 +1,26 @@
 import type { Project } from "@/lib/projects";
 
-export function StatusPill({ status }: { status: Project["status"] }) {
-  return <span className={`status status-${status.toLowerCase().replace(" ", "-")}`}>{status}</span>;
+type StatusPillProps = {
+  status: Project["status"];
+  repositoryUrl?: string;
+  projectTitle?: string;
+};
+
+export function StatusPill({ status, repositoryUrl, projectTitle }: StatusPillProps) {
+  const className = `status status-${status.toLowerCase().replace(" ", "-")}`;
+
+  if (repositoryUrl && projectTitle) {
+    return (
+      <a
+        aria-label={`${status}. Open ${projectTitle} repository on GitHub.`}
+        className={`${className} status-link`}
+        href={repositoryUrl}
+      >
+        <span>{status}</span>
+        <span aria-hidden="true">· GitHub ↗</span>
+      </a>
+    );
+  }
+
+  return <span className={className}>{status}</span>;
 }

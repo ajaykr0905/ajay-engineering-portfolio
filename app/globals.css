@@ -423,6 +423,7 @@ button:focus-visible {
 }
 
 .project-summary,
+.project-focus,
 .writing-feature p,
 .note-card p,
 .case-study-grid p,
@@ -431,6 +432,16 @@ button:focus-visible {
   max-width: 48rem;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.project-focus {
+  margin: 1rem 0 0;
+  border-left: 2px solid var(--accent);
+  padding-left: 0.9rem;
+}
+
+.project-focus strong {
+  color: var(--muted-strong);
 }
 
 .tag-list {
@@ -461,6 +472,21 @@ button:focus-visible {
   color: var(--accent);
 }
 
+.status-link {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-inline: 0.8rem;
+  white-space: nowrap;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.status-link:hover {
+  background: var(--surface-strong);
+  transform: translateY(-1px);
+}
+
 .text-link {
   display: inline-flex;
   gap: 0.4rem;
@@ -474,6 +500,12 @@ button:focus-visible {
 
 .text-link:hover {
   text-decoration-color: currentColor;
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.4rem;
 }
 
 .experience-preview,
@@ -560,6 +592,27 @@ button:focus-visible {
   align-items: flex-end;
   justify-content: space-between;
   gap: 2rem;
+}
+
+.contact-copy {
+  max-width: 42rem;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.contact-copy a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.contact-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.8rem;
 }
 
 .site-footer {
@@ -1020,6 +1073,10 @@ button:focus-visible {
   .project-cta {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .contact-actions {
+    justify-content: flex-start;
   }
 
   .diagram-flow,

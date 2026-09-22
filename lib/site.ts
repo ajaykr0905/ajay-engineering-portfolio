@@ -3,10 +3,13 @@ export const siteConfig = {
   shortName: "Ajay",
   title: "Distributed Systems and AI Infrastructure Engineer",
   description:
-    "Building reliable backend platforms, observable cloud systems, and reproducible ML infrastructure.",
+    "I build backend and AI projects that recruiters and engineers can inspect, run locally, and verify through tests.",
   location: "Bengaluru, India",
   url: "https://ajaykr-engineering-portfolio.vercel.app",
   email: "ajaykumar.rob27@gmail.com",
+  emailHref: "mailto:ajaykumar.rob27@gmail.com?subject=Portfolio%20conversation",
+  gmailComposeUrl:
+    "https://mail.google.com/mail/?view=cm&fs=1&to=ajaykumar.rob27%40gmail.com&su=Portfolio%20conversation",
   github: "https://github.com/ajaykr0905",
   linkedin: "https://www.linkedin.com/in/ajay-kumar-pondugala-3b3b711b8/",
   resumePath: "/Ajay_Kumar_Pondugala_Resume.pdf",

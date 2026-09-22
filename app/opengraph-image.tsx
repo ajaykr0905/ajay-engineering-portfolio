@@ -13,7 +13,7 @@ export default function OpenGraphImage() {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div style={{ fontSize: 76, lineHeight: 1.04, letterSpacing: -3, fontWeight: 700, maxWidth: 1000 }}>Distributed Systems and AI Infrastructure Engineer</div>
-        <div style={{ fontSize: 30, color: "#a9b8b1" }}>Reliable backend platforms · observable cloud systems · reproducible ML infrastructure</div>
+        <div style={{ fontSize: 30, color: "#a9b8b1" }}>Public projects with working code, tests, setup guides, and honest limitations</div>
       </div>
       <div style={{ display: "flex", gap: 24, fontFamily: "monospace", color: "#81efb5", fontSize: 24 }}>Go · Java · Python · Kubernetes · PyTorch</div>
     </div>,

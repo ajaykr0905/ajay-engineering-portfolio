@@ -14,6 +14,7 @@ export const projectSchema = z.object({
   title: z.string().min(1),
   eyebrow: z.string().min(1),
   summary: z.string().min(1),
+  currentFocus: z.string().min(1),
   status: projectStatusSchema,
   featured: z.boolean(),
   roleAlignment: z.array(z.string().min(1)).min(1),
@@ -42,9 +43,11 @@ const projectInput = [
   {
     slug: "fault-tolerant-transformer-lab",
     title: "Fault-Tolerant Transformer Lab",
-    eyebrow: "AI infrastructure flagship",
+    eyebrow: "Model training reliability",
     summary:
-      "A reproducible training and serving system designed to make checkpointing, controlled experiments, failure recovery, and inference observability inspectable.",
+      "A small PyTorch lab that saves model training progress and checks that a restarted run reaches the same verified state. It runs on CPU today; GPU and serving work are still planned.",
+    currentFocus:
+      "A real stop-and-restart recovery demo, stronger checkpoint validation, and evidence-rich artifacts.",
     status: "Building",
     featured: true,
     roleAlignment: ["AI infrastructure", "ML systems", "Research engineering"],
@@ -118,10 +121,12 @@ const projectInput = [
   },
   {
     slug: "distributed-scale-validation-platform",
-    title: "Distributed Scale Validation Platform",
-    eyebrow: "Distributed systems lab",
+    title: "Distributed Scale Validation Lab",
+    eyebrow: "Reliable background jobs",
     summary:
-      "A clean-room Go system for deterministic workload generation, concurrent processing, idempotent persistence, retry contracts, and failure-oriented validation.",
+      "A Go lab that tests what happens when background jobs are duplicated, retried, or fail. The local demo uses memory today; RabbitMQ and PostgreSQL are covered by integration tests.",
+    currentFocus:
+      "Connecting the API and multiple workers through RabbitMQ and PostgreSQL, then testing worker failures.",
     status: "Runnable Lab",
     featured: true,
     roleAlignment: ["Distributed systems", "Backend engineering", "Platform reliability"],
@@ -189,9 +194,11 @@ const projectInput = [
   {
     slug: "voicemed-ai",
     title: "VoiceMed AI",
-    eyebrow: "Human-reviewed AI product",
+    eyebrow: "Voice-to-notes AI prototype",
     summary:
-      "A multilingual clinical-documentation prototype that turns speech into structured, reviewable notes without positioning model output as a diagnosis.",
+      "A synthetic-data prototype that turns speech into a structured draft and blocks export until a person confirms it. It does not diagnose or prove clinical accuracy.",
+    currentFocus:
+      "Correcting demo safety boundaries and shipping a standalone no-key public demo.",
     status: "Building",
     featured: true,
     roleAlignment: ["AI product engineering", "Structured generation", "Human-in-the-loop systems"],

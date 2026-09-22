@@ -26,21 +26,21 @@ export default function HomePage() {
       <section className="hero shell">
         <div className="hero-grid">
           <div>
-            <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to senior backend and AI infrastructure conversations</p>
+            <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, and AI engineering roles</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">
-              <Link className="button button-primary" href="/projects/fault-tolerant-transformer-lab">View flagship system</Link>
+              <Link className="button button-primary" href="/#projects">See projects and code</Link>
               <a className="button button-secondary" href={siteConfig.resumePath} download>Download résumé</a>
             </div>
           </div>
           <aside className="hero-proof" aria-label="Engineering focus">
-            <p className="eyebrow">Engineering signal</p>
-            <p className="proof-statement">Backend ownership from service contract to release evidence.</p>
+            <p className="eyebrow">How I work</p>
+            <p className="proof-statement">Every project links to working code, tests, and honest limitations.</p>
             <dl>
-              <div><dt>Current scope</dt><dd>Distributed backend and reliability</dd></div>
-              <div><dt>Next frontier</dt><dd>Training, inference, and evaluation systems</dd></div>
-              <div><dt>Evidence rule</dt><dd>Reproducible or clearly marked in progress</dd></div>
+              <div><dt>Building</dt><dd>Backend and distributed systems</dd></div>
+              <div><dt>Learning</dt><dd>Training and inference systems</dd></div>
+              <div><dt>Rule</dt><dd>Working evidence before claims</dd></div>
             </dl>
           </aside>
         </div>
@@ -51,9 +51,9 @@ export default function HomePage() {
 
       <section className="section shell" id="projects">
         <SectionHeading
-          eyebrow="Selected systems"
-          title="Built to be inspected, not just described."
-          aside={<p className="section-aside">Architecture, failure modes, verification, and limitations are part of every case study.</p>}
+          eyebrow="Featured projects"
+          title="What each project does—and what works today."
+          aside={<p className="section-aside">Open a project for the problem, working code, setup guide, tests, and current limitations.</p>}
         />
         <div className="project-list">
           {featuredProjects.map((project, index) => <ProjectCard key={project.slug} project={project} index={index} />)}
@@ -98,9 +98,23 @@ export default function HomePage() {
         <div className="shell contact-inner">
           <div>
             <p className="eyebrow">Contact</p>
-            <h2>Building reliable systems where backend depth meets AI infrastructure.</h2>
+            <h2>Have a role or project to discuss?</h2>
+            <p className="contact-copy">
+              Open a Gmail draft or email me directly at <a href={siteConfig.emailHref}>{siteConfig.email}</a>.
+            </p>
           </div>
-          <a className="button button-primary" href={`mailto:${siteConfig.email}`}>Start a conversation</a>
+          <div className="contact-actions">
+            <a
+              aria-label="Email Ajay in Gmail (opens in a new tab)"
+              className="button button-primary"
+              href={siteConfig.gmailComposeUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Email Ajay in Gmail <span aria-hidden="true">↗</span>
+            </a>
+            <a className="button button-secondary" href={siteConfig.emailHref}>Use your email app</a>
+          </div>
         </div>
       </section>
     </>

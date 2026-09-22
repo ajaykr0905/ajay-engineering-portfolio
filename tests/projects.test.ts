@@ -20,6 +20,13 @@ describe("project evidence model", () => {
     }
   });
 
+  it("gives every featured project a public Ajay-owned repository", () => {
+    for (const project of projects.filter((item) => item.featured)) {
+      expect(project.repositoryUrl).toMatch(/^https:\/\/github\.com\/ajaykr0905\//);
+      expect(project.currentFocus.length).toBeGreaterThan(30);
+    }
+  });
+
   it("does not label unfinished flagship work as shipped", () => {
     const flagship = projects.find((project) => project.slug === "fault-tolerant-transformer-lab");
     expect(flagship?.status).toBe("Building");
