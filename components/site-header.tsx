@@ -8,6 +8,7 @@ export function SiteHeader() {
       <div className="shell header-inner">
         <Link className="brand" href="/" aria-label={`AP ${siteConfig.shortName}, home`}>
           <span className="brand-mark" aria-hidden="true">AP</span>
+          {" "}
           <span>{siteConfig.shortName}</span>
         </Link>
         <nav aria-label="Primary navigation">
