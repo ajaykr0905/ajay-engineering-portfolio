@@ -5,7 +5,7 @@ export const siteConfig = {
   description:
     "Building reliable backend platforms, observable cloud systems, and reproducible ML infrastructure.",
   location: "Bengaluru, India",
-  url: "https://ajay-dev-engineer.vercel.app",
+  url: "https://ajaykr-engineering-portfolio.vercel.app",
   email: "ajaykumar.rob27@gmail.com",
   github: "https://github.com/ajaykr0905",
   linkedin: "https://www.linkedin.com/in/ajay-kumar-pondugala-3b3b711b8/",
