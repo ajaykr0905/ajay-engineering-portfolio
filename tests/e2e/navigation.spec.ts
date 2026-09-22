@@ -23,7 +23,7 @@ test("project cards expose their case study and GitHub repository", async ({ pag
       project.repositoryUrl ?? "",
     );
     await expect(
-      card.getByRole("link", { name: `${project.status}. Open ${project.title} repository on GitHub.` }),
+      card.getByRole("link", { name: `${project.status} · GitHub. Open ${project.title} repository.` }),
     ).toHaveAttribute("href", project.repositoryUrl ?? "");
   }
 });

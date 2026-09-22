@@ -12,7 +12,7 @@ export function StatusPill({ status, repositoryUrl, projectTitle }: StatusPillPr
   if (repositoryUrl && projectTitle) {
     return (
       <a
-        aria-label={`${status}. Open ${projectTitle} repository on GitHub.`}
+        aria-label={`${status} · GitHub. Open ${projectTitle} repository.`}
         className={`${className} status-link`}
         href={repositoryUrl}
       >
