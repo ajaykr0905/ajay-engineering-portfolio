@@ -40,12 +40,16 @@ pnpm test:e2e
 
 The GitHub Actions workflow also runs Lighthouse against the home page, experience page, and flagship project page.
 
+See the [verified release status](docs/release-status.md) for completed gates and deliberately unclaimed work.
+
 ## Deployment
 
 1. Connect this repository to the existing `ajay-dev-engineer` Vercel project.
 2. Keep deployment protection enabled for previews only.
 3. Disable Vercel Authentication on the production domain.
 4. Verify the production URL in a signed-out browser before linking it from LinkedIn.
+
+The [Vercel release runbook](docs/vercel-release.md) covers the existing-domain handoff and unauthenticated checks.
 
 ## Public-safety boundary
 
