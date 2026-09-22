@@ -43,6 +43,9 @@ pnpm test:e2e
 The GitHub Actions workflow also runs Lighthouse against the home page, experience page, and flagship project page.
 
 See the [verified release status](docs/release-status.md) for completed gates and deliberately unclaimed work.
+The [end-to-end project delivery strategy](docs/project-delivery-strategy.md)
+defines the implementation order and the evidence required before a project is
+called shipped.
 
 ## Deployment
 
