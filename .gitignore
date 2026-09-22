@@ -4,6 +4,7 @@ out/
 coverage/
 playwright-report/
 test-results/
+.lighthouseci/
 .vercel/
 .env*
 !.env.example
