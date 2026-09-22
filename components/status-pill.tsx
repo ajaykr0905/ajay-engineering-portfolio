@@ -11,13 +11,10 @@ export function StatusPill({ status, repositoryUrl, projectTitle }: StatusPillPr
 
   if (repositoryUrl && projectTitle) {
     return (
-      <a
-        aria-label={`${status} · GitHub. Open ${projectTitle} repository.`}
-        className={`${className} status-link`}
-        href={repositoryUrl}
-      >
+      <a className={`${className} status-link`} href={repositoryUrl}>
         <span>{status}</span>
-        <span aria-hidden="true">· GitHub ↗</span>
+        <span>· GitHub</span>
+        <span className="sr-only">{` — open ${projectTitle} repository`}</span>
       </a>
     );
   }
