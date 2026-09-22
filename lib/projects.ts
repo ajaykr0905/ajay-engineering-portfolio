@@ -96,10 +96,16 @@ const projectInput = [
     ],
     metrics: [
       {
-        value: "7 / 7",
+        value: "9 / 9",
         label: "CPU verification tests passing",
-        method: "Pytest suite covering contracts, causal isolation, autograd gradients, checkpoint restart equality, and configuration drift rejection.",
+        method: "Pytest suite covering contracts, causal isolation, autograd gradients, checkpoint restart equality, configuration drift rejection, and LoRA behavior.",
         evidenceUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/tree/main/tests",
+      },
+      {
+        value: "5.5%",
+        label: "trainable parameters in the controlled LoRA run",
+        method: "The same initialized model, synthetic batches, seed, and step budget were used for full tuning and LoRA; 1,536 LoRA parameters were trainable versus 28,032 in full tuning. This is a parameter-efficiency result, not a quality claim.",
+        evidenceUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/main/artifacts/tuning-comparison/result.json",
       },
       {
         value: "512",
@@ -125,7 +131,7 @@ const projectInput = [
       "At-least-once delivery is easy to describe and difficult to validate. The lab makes duplicate delivery, retry behavior, idempotency, and persistence failures reproducible with synthetic inputs.",
     constraints: [
       "The default test path must require no external services.",
-      "Optional infrastructure must never be confused with an implemented production adapter.",
+      "Local adapter verification must never be described as a production deployment or production benchmark.",
       "No employer code, data, schemas, identifiers, or benchmark results may enter the repository.",
     ],
     decisions: [
@@ -162,7 +168,7 @@ const projectInput = [
       "Restricted Kubernetes workload security context.",
     ],
     limitations: [
-      "RabbitMQ and external PostgreSQL integration runs are not yet presented as complete.",
+      "RabbitMQ and PostgreSQL adapters are implemented, but no external-service performance result is published yet.",
       "No public throughput or latency claim is published until the benchmark environment is recorded.",
     ],
     metrics: [
