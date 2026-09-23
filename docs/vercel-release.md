@@ -20,7 +20,7 @@ redirects signed-out visitors to Vercel login.
 ## Public release verification
 
 - Open the production URL in a signed-out private window.
-- Confirm `/`, `/experience`, `/writing`, `/resume`, and all three project pages open without a login.
+- Confirm `/`, `/experience`, `/writing`, `/resume`, and all four project pages open without a login.
 - Download the résumé and verify the PDF opens.
 - Verify GitHub, LinkedIn, and email actions.
 - Run the CI browser, link, and Lighthouse gates against the deployed URL.

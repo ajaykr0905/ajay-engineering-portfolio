@@ -4,6 +4,7 @@ const diagramLabels: Record<Project["visualKey"], string[]> = {
   transformer: ["Dataset + manifest", "Training + checkpoints", "Serving + telemetry", "Evidence artifacts"],
   distributed: ["Synthetic workload", "Queue + workers", "Idempotent store", "Benchmark report"],
   voicemed: ["Synthetic speech", "Transcribe + extract", "Human review", "Structured export"],
+  security: ["Dependency evidence", "OSV + KEV context", "Policy decision", "Replayable result"],
 };
 
 export function SystemDiagram({ project }: { project: Project }) {

@@ -60,7 +60,7 @@ reported no rendered violations on the audited routes.
 - Desktop and mobile screenshots at rest and in a deterministic paused focus state.
 - Lighthouse ran three times each on the homepage, experience page, and flagship
   project page. Median scores were Performance 0.99, Accessibility 1.00, Best
-  Practices 1.00, and SEO 1.00. One cold homepage run measured Performance 0.82;
+  Practices 1.00, and SEO 1.00. One cold homepage run measured Performance 0.77;
   the other eight runs measured 0.99. The configured aggregate gates passed.
 
 ## Manual release steps

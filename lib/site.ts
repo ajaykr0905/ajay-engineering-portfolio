@@ -29,6 +29,8 @@ export const stack = [
   "Python",
   "Kubernetes",
   "OpenTelemetry",
+  "Security Engineering",
+  "Vulnerability Management",
   "PostgreSQL",
   "PyTorch",
 ] as const;

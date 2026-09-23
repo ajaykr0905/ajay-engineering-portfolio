@@ -50,6 +50,22 @@ function VoiceMedGlyph() {
   );
 }
 
+function SecurityGlyph() {
+  return (
+    <>
+      <span className="glyph-security-frame" />
+      <span className="glyph-security-axis glyph-security-axis-vertical" />
+      <span className="glyph-security-axis glyph-security-axis-horizontal" />
+      <span className="glyph-security-scan" />
+      <span className="glyph-core" />
+      <span className="glyph-node glyph-node-one" />
+      <span className="glyph-node glyph-node-two" />
+      <span className="glyph-node glyph-node-three" />
+      <span className="glyph-node glyph-node-four" />
+    </>
+  );
+}
+
 export function ConstellationGlyph({ visualKey, size = "medium" }: ConstellationGlyphProps) {
   return (
     <span
@@ -60,6 +76,7 @@ export function ConstellationGlyph({ visualKey, size = "medium" }: Constellation
       {visualKey === "transformer" ? <TransformerGlyph /> : null}
       {visualKey === "distributed" ? <DistributedGlyph /> : null}
       {visualKey === "voicemed" ? <VoiceMedGlyph /> : null}
+      {visualKey === "security" ? <SecurityGlyph /> : null}
     </span>
   );
 }

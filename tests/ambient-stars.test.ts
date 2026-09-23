@@ -101,16 +101,17 @@ describe("ambient constellation model", () => {
     expect(() => ambientStarStateAtTime(createSeededStars(1)[0], 100, 100, Number.NaN)).toThrow(RangeError);
   });
 
-  it("reserves existing wide-screen stars for three authored constellation islands", () => {
+  it("reserves existing wide-screen stars for four authored constellation islands", () => {
     const seeded = createSeededStars(STAR_DENSITY.desktop);
     const narrow = reserveConstellationIslandStars(seeded, CONSTELLATION_ISLAND_MIN_WIDTH - 1);
     const wide = reserveConstellationIslandStars(seeded, CONSTELLATION_ISLAND_MIN_WIDTH);
 
-    expect(CONSTELLATION_ISLAND_STAR_COUNT).toBe(18);
+    expect(CONSTELLATION_ISLAND_STAR_COUNT).toBe(24);
     expect(CONSTELLATION_ISLANDS.map((island) => island.visualKey)).toEqual([
       "transformer",
       "distributed",
       "voicemed",
+      "security",
     ]);
     expect(narrow.reservedCount).toBe(0);
     expect(narrow.connections).toEqual([]);

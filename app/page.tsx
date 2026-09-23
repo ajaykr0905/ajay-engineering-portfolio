@@ -28,7 +28,7 @@ export default function HomePage() {
         <div className="hero-grid" data-pointer-surface>
           <div className="hero-content" data-cosmos-mask>
             <p className="identity-kicker">AJAY <span aria-hidden="true">/</span> SYSTEMS PORTFOLIO</p>
-            <p className="availability"><span aria-hidden="true" /> Software Engineer II · Backend and platform reliability · Building fault-tolerant AI labs in public</p>
+            <p className="availability"><span aria-hidden="true" /> Software Engineer II · Backend and platform reliability · Building fault-tolerant AI and security labs in public</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">

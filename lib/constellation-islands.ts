@@ -20,7 +20,7 @@ export type AuthoredIslandConnection = {
   visualKey: ProjectVisualKey;
 };
 
-// These live only in wide-screen gutters. They use eighteen stars already
+// These live only in wide-screen gutters. They use twenty-four stars already
 // included in STAR_DENSITY rather than adding more particles to the scene.
 export const CONSTELLATION_ISLANDS: readonly IslandDefinition[] = [
   {
@@ -58,6 +58,18 @@ export const CONSTELLATION_ISLANDS: readonly IslandDefinition[] = [
       { x: 0.985, y: 0.78 },
     ],
     edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+  },
+  {
+    visualKey: "security",
+    nodes: [
+      { x: 0.055, y: 0.77 },
+      { x: 0.078, y: 0.79 },
+      { x: 0.078, y: 0.825 },
+      { x: 0.055, y: 0.845 },
+      { x: 0.032, y: 0.825 },
+      { x: 0.032, y: 0.79 },
+    ],
+    edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0]],
   },
 ] as const;
 

@@ -11,6 +11,7 @@ const publicRoutes = [
   "/projects/fault-tolerant-transformer-lab",
   "/projects/distributed-scale-validation-platform",
   "/projects/voicemed-ai",
+  "/projects/evidence-first-security-harness",
 ] as const;
 
 async function spectrumColor(page: Page) {
@@ -206,9 +207,14 @@ test("project glyphs respond once to project intent and stop when motion is paus
   await expect(transformerCard.locator(".glyph-orbit-outer")).toHaveCSS("animation-name", "glyph-orbit-forward");
   await expect(transformerCard.locator(".glyph-orbit-inner")).toHaveCSS("animation-name", "glyph-orbit-reverse");
 
+  const securityCard = page.locator('article.project-card[data-visual-key="security"]');
+  await securityCard.locator("[data-spectrum-primary]").focus();
+  await expect(securityCard.locator(".glyph-security-scan")).toHaveCSS("animation-name", "glyph-security-scan");
+
   await page.getByRole("button", { name: "Pause animations" }).click();
   await expect(transformerCard.locator(".glyph-orbit-outer")).toHaveCSS("animation-name", "none");
   await expect(transformerCard.locator(".glyph-orbit-inner")).toHaveCSS("animation-name", "none");
+  await expect(securityCard.locator(".glyph-security-scan")).toHaveCSS("animation-name", "none");
 });
 
 test("wide desktops expose a semantic mission rail without adding narrow-screen clutter", async ({ page }, testInfo) => {
@@ -233,6 +239,12 @@ test("failure replays expose linked-test provenance and complete manual controls
   await page.goto("/projects/distributed-scale-validation-platform#failure-replay");
 
   const replay = page.locator("#failure-replay");
+  await expect.poll(() => page.evaluate(() => {
+    const header = document.querySelector(".site-header")?.getBoundingClientRect();
+    const target = document.querySelector("#failure-replay")?.getBoundingClientRect();
+    if (!header || !target) return false;
+    return target.top >= header.bottom + 8;
+  })).toBe(true);
   await expect(replay.getByRole("heading", { name: "Replay the verified system path" })).toBeVisible();
   await expect(replay).toContainText("not live telemetry");
   await expect(replay.getByRole("button", { name: "Inject duplicate" })).toHaveAttribute("aria-pressed", "true");
@@ -244,13 +256,6 @@ test("failure replays expose linked-test provenance and complete manual controls
     /e0a1a197265869a15043df462d1f230221660ba5/,
   );
 
-  await page.goto("/projects/distributed-scale-validation-platform#failure-replay");
-  await expect.poll(() => page.evaluate(() => {
-    const header = document.querySelector(".site-header")?.getBoundingClientRect();
-    const target = document.querySelector("#failure-replay")?.getBoundingClientRect();
-    if (!header || !target) return false;
-    return target.top >= header.bottom + 8;
-  })).toBe(true);
 });
 
 test("homepage and a project detail page have no automated accessibility violations", async ({ page }) => {

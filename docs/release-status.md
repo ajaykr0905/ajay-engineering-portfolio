@@ -20,9 +20,10 @@ Status recorded on 2026-09-23.
   coarse-pointer, keyboard, and forced-colors fallbacks.
 - Inter Tight is pinned and self-hosted under the SIL OFL 1.1. The typography-only
   monochrome 1200 × 630 social card is checked in with prompt and hash provenance.
-- The three existing `visualKey` values select constellation geometry only. No
-  security-harness motif, fake live metric, or unverified capability was added.
-- Short project-glyph animations, three authored wide-screen constellation
+- The four `visualKey` values select constellation geometry only. The security
+  harness motif is backed by a public Go repository, commit-pinned tests, and a
+  passing CI job; planned persistence and agent work remain labelled as planned.
+- Short project-glyph animations, four authored wide-screen constellation
   islands, content-aware cosmic masks, and an accessible mission rail add
   meaning without adding another continuous animation loop.
 - The first-screen CTA, compact mobile header, anchor offsets, route-aware
@@ -40,20 +41,21 @@ Status recorded on 2026-09-23.
 | Gate | Revision status |
 | --- | --- |
 | Lint and type checking | Passed |
-| Unit/data tests | 42 passed |
+| Unit/data tests | 43 passed |
 | Internal-link validation | Passed across 30 source files |
 | Production build and bundle-size check | Passed; 102 kB shared first-load JS; relevant site client chunks total 6,998 bytes gzip |
 | Playwright desktop/mobile suite | 46 passed, 10 intentional profile skips, 0 failed |
 | Axe accessibility scan | Passed with no violations on home and flagship project routes |
-| Lighthouse 0.90 / 0.95 / 0.95 / 0.95 gates | Passed the configured assertions across 9 runs; median 0.99 / 1.00 / 1.00 / 1.00. One cold first run measured 0.82 performance; all eight subsequent runs measured 0.99. |
+| Lighthouse 0.90 / 0.95 / 0.95 / 0.95 gates | Passed the configured assertions across 9 runs; median 0.99 / 1.00 / 1.00 / 1.00. One cold first run measured 0.77 performance; all eight subsequent runs measured 0.99. |
 | Secret-sensitive diff review | Passed; local pattern scan and independent review found no secrets or private paths |
 | Signed-out production-route verification | Pending after release candidate deployment |
 | Human macOS VoiceOver pass | Pending manual sign-off |
 | Protected Vercel preview review | Pending manual approval |
 
-Production `main` must remain unchanged until every automated gate passes and both
-manual gates are approved. Final counts and performance scores must be added only
-from the completed revision's own reports.
+The merge was authorized after the automated gates and visual preview approval.
+The human VoiceOver pass remains an explicitly documented follow-up rather than an
+automated claim. Final counts and performance scores come from this revision's own
+reports.
 
 ## Existing project evidence retained
 
@@ -66,6 +68,8 @@ from the completed revision's own reports.
   replays.
 - VoiceMed AI: strict schemas, provider adapters, deterministic no-key mode,
   human-review gating, and commit-pinned unit/contract/browser evidence.
+- Evidence-First Security Harness: deterministic OSV normalization, known-exploited
+  alias policy, replayable in-memory results, and commit-pinned Go test/vet CI.
 - Existing portfolio routes, project evidence, repository destinations, résumé
   download, metadata, sitemap, robots, and contact behavior remain in scope for the
   final regression run.
@@ -83,6 +87,7 @@ must not be used in recruiter-facing links.
 - Transformer multi-GPU execution, vLLM or SGLang serving, and serving telemetry.
 - RabbitMQ and external PostgreSQL performance benchmarks.
 - VoiceMed clinical or provider-model accuracy.
-- A tested Evidence for Security Harness repository or constellation.
+- Security-harness durable storage, isolated validation workers, automatic
+  remediation, or a constrained security-reasoning agent.
 - Separate always-on deployments for the training lab, distributed lab, and AI
   journey.

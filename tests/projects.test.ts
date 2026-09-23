@@ -15,8 +15,8 @@ describe("project evidence model", () => {
   });
 
   it("assigns each published system one supported visual identity", () => {
-    expect(projects.map((project) => project.visualKey)).toEqual(["transformer", "distributed", "voicemed"]);
-    expect(projectVisualKeySchema.safeParse("security").success).toBe(false);
+    expect(projects.map((project) => project.visualKey)).toEqual(["transformer", "distributed", "voicemed", "security"]);
+    expect(projectVisualKeySchema.safeParse("security").success).toBe(true);
   });
 
   it("does not publish a metric without a method", () => {
@@ -101,5 +101,18 @@ describe("project evidence model", () => {
       expect.objectContaining({ id: "human-review-gate", label: "Human review gate" }),
     ]));
     expect(voiceMed?.replayScenarios[0]?.sourceUrl).toContain("824b2331c476ccfab320e5b186f1846ae21d79f3");
+  });
+
+  it("publishes the security harness only with pinned, current-slice evidence", () => {
+    const security = projects.find((project) => project.visualKey === "security");
+    expect(security?.stack).toEqual(["Go", "OSV", "CISA KEV", "HTTP API", "GitHub Actions"]);
+    expect(security?.stack).not.toEqual(expect.arrayContaining(["PostgreSQL", "Docker", "OpenTelemetry"]));
+    expect(security?.metrics.map((metric) => metric.value)).toEqual(["4 / 4", "1 → 1", "critical"]);
+    expect(security?.metrics.every((metric) => metric.evidence.commitSha === "2caa83604fa969f4c9d6e226e479c331899d76ba")).toBe(true);
+    expect(security?.metrics.every((metric) => metric.evidence.ciUrl === "https://github.com/ajaykr0905/evidence-first-security-harness/actions/runs/35780173790/job/106923368505")).toBe(true);
+    expect(security?.replayScenarios).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "evidence-policy-replay", label: "Evidence-to-policy replay" }),
+    ]));
+    expect(security?.demoPath).toBe("/projects/evidence-first-security-harness#failure-replay");
   });
 });

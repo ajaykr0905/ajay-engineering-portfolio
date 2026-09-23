@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum(["Shipped", "Runnable Lab", "Building"]);
-export const projectVisualKeySchema = z.enum(["transformer", "distributed", "voicemed"]);
+export const projectVisualKeySchema = z.enum(["transformer", "distributed", "voicemed", "security"]);
 export type ProjectVisualKey = z.infer<typeof projectVisualKeySchema>;
 
 export const metricEvidenceSchema = z.object({
@@ -110,6 +110,11 @@ const voiceMedRepository = "https://github.com/ajaykr0905/voicemed-ai";
 const voiceMedCommitUrl = `${voiceMedRepository}/commit/${voiceMedCommit}`;
 const voiceMedChecksCiUrl = "https://github.com/ajaykr0905/voicemed-ai/actions/runs/35732026537/job/106759732651";
 const voiceMedBrowserCiUrl = "https://github.com/ajaykr0905/voicemed-ai/actions/runs/35732026537/job/106759732214";
+
+const securityCommit = "2caa83604fa969f4c9d6e226e479c331899d76ba";
+const securityRepository = "https://github.com/ajaykr0905/evidence-first-security-harness";
+const securityCommitUrl = `${securityRepository}/commit/${securityCommit}`;
+const securityCiUrl = "https://github.com/ajaykr0905/evidence-first-security-harness/actions/runs/35780173790/job/106923368505";
 
 const projectInput = [
   {
@@ -598,6 +603,152 @@ const projectInput = [
       },
     ],
     lastVerified: "2026-09-22",
+  },
+  {
+    slug: "evidence-first-security-harness",
+    title: "Evidence-First Security Harness",
+    eyebrow: "Security automation and vulnerability remediation",
+    visualKey: "security",
+    summary:
+      "An open-source Go security-platform lab that turns dependency evidence into explainable, reviewable remediation priorities. The current slice queries OSV, enriches findings with optional KEV data, applies deterministic policy, and preserves replayable results.",
+    currentFocus:
+      "Adding CycloneDX SBOM ingestion, durable evidence storage, isolated validation workers, and a constrained security-reasoning agent.",
+    status: "Building",
+    featured: true,
+    roleAlignment: ["Security platform engineering", "Vulnerability management", "AI safety and developer tooling"],
+    stack: ["Go", "OSV", "CISA KEV", "HTTP API", "GitHub Actions"],
+    repositoryUrl: securityRepository,
+    demoPath: "/projects/evidence-first-security-harness#failure-replay",
+    problem:
+      "A vulnerability list is not yet a remediation decision. The current harness connects an affected component, source evidence, known-exploitation context, fixed versions, policy rationale, and a replayable result; human approval remains a boundary for future remediation work.",
+    constraints: [
+      "The public default is read-only and must not probe arbitrary hosts or execute exploit payloads.",
+      "Every recommendation must be explainable from captured source evidence.",
+      "Fixtures and examples must remain synthetic and free of employer code, data, identifiers, or secrets.",
+    ],
+    decisions: [
+      {
+        title: "Evidence before model output",
+        detail:
+          "OSV results and policy decisions are first-class records; future model output can only propose structured actions from that evidence.",
+      },
+      {
+        title: "Deterministic policy boundary",
+        detail:
+          "Known-exploited and fixed-version signals are translated into explicit priorities and rationales before any human-gated automation is introduced.",
+      },
+      {
+        title: "Transport-injected verification",
+        detail:
+          "The OSV client uses injectable HTTP transport so tests are deterministic and do not depend on public network availability.",
+      },
+    ],
+    tradeoffs: [
+      "The current in-memory store keeps the first release easy to run, but it is not a durable multi-user deployment.",
+      "The initial project prioritizes trustworthy evidence flow over automatic patch application.",
+    ],
+    failureModes: [
+      "Malformed or oversized scan input.",
+      "Vulnerability catalog outage or response drift.",
+      "A known exploited alias missed during normalization.",
+      "A remediation recommendation that lacks a fixed version or validation evidence.",
+    ],
+    verification: [
+      "Go unit tests for OSV normalization and fixed-version extraction.",
+      "Policy tests for known-exploited aliases and fixed-version priority.",
+      "Service tests proving results are stored and replayable.",
+      "Go vet and GitHub Actions checks.",
+    ],
+    limitations: [
+      "CycloneDX ingestion, PostgreSQL persistence, isolated validation workers, and the constrained AI agent are planned next slices.",
+      "No production deployment, exploit capability, or automatic repository write is claimed.",
+    ],
+    metrics: [
+      {
+        value: "4 / 4",
+        label: "public Go tests passing",
+        method:
+          "The checked suite covers injected OSV normalization, fixed-version extraction, known-exploited alias priority, and in-memory result persistence and retrieval.",
+        evidence: {
+          sourceLabel: "Pinned Go test packages",
+          sourceUrl: `${securityRepository}/tree/${securityCommit}/internal`,
+          commitSha: securityCommit,
+          commitUrl: securityCommitUrl,
+          command: "go test ./...",
+          ciLabel: "Passing Go test and vet job",
+          ciUrl: securityCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.26.4 · synthetic in-process fixtures",
+          limitation: "Small deterministic fixtures; no production deployment, live-catalog reliability, throughput, or exploit-capability claim.",
+        },
+      },
+      {
+        value: "1 → 1",
+        label: "scan result stored and retrieved",
+        method:
+          "One synthetic component scan uses an injected OSV response, applies deterministic policy, writes the result to the memory store, and retrieves the same result identifier.",
+        evidence: {
+          sourceLabel: "Pinned scan orchestration test",
+          sourceUrl: `${securityRepository}/blob/${securityCommit}/internal/scan/service_test.go#L16-L33`,
+          commitSha: securityCommit,
+          commitUrl: securityCommitUrl,
+          command: "go test ./internal/scan -run '^TestRunStoresExplainableResult$' -count=1",
+          ciLabel: "Passing Go test and vet job",
+          ciUrl: securityCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.26.4 · injected HTTP transport · memory store",
+          limitation: "In-process memory-store proof; it does not exercise the public HTTP handlers, durable storage, concurrency, or a multi-user deployment.",
+        },
+      },
+      {
+        value: "critical",
+        label: "known-exploited alias policy outcome",
+        method:
+          "A synthetic advisory alias present in the injected known-exploited map is deterministically promoted to critical priority and retains its known-exploited marker.",
+        evidence: {
+          sourceLabel: "Pinned policy test",
+          sourceUrl: `${securityRepository}/blob/${securityCommit}/internal/policy/policy_test.go#L9-L14`,
+          commitSha: securityCommit,
+          commitUrl: securityCommitUrl,
+          command: "go test ./internal/policy -run '^TestKnownExploitedAliasIsCritical$' -count=1",
+          ciLabel: "Passing Go test and vet job",
+          ciUrl: securityCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.26.4 · synthetic known-exploited map",
+          limitation: "Deterministic policy-unit proof; it does not validate freshness, completeness, or availability of the live CISA KEV catalog.",
+        },
+      },
+    ],
+    replayScenarios: [
+      {
+        id: "evidence-policy-replay",
+        label: "Evidence-to-policy replay",
+        outcome: "The synthetic advisory is normalized, classified as critical from declared known-exploited context, stored, and retrieved with the same scan identifier.",
+        sourceLabel: "Inspect the pinned scan test",
+        sourceUrl: `${securityRepository}/blob/${securityCommit}/internal/scan/service_test.go#L16-L33`,
+        limitation: "Deterministic unit-test replay—not a live OSV or KEV request, HTTP end-to-end run, durable-storage proof, or automated remediation.",
+        steps: [
+          {
+            title: "Declare the synthetic component",
+            detail: "The test submits one Go component with a fixed name, version, ecosystem, and project identifier.",
+            state: "input",
+          },
+          {
+            title: "Inject vulnerability evidence",
+            detail: "A deterministic HTTP transport returns one advisory with a fixed version instead of contacting the public OSV service.",
+            state: "processing",
+          },
+          {
+            title: "Apply the policy boundary",
+            detail: "The declared known-exploited context promotes the finding to critical without model-generated reasoning.",
+            state: "recovery",
+          },
+          {
+            title: "Store and retrieve the result",
+            detail: "The memory store returns the same scan identifier, proving replayable result persistence within this test boundary.",
+            state: "verified",
+          },
+        ],
+      },
+    ],
+    lastVerified: "2026-09-23",
   },
 ] satisfies Project[];
 

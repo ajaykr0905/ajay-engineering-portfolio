@@ -7,7 +7,7 @@ test("homepage communicates positioning and evidence path", async ({ page }) => 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Distributed Systems and AI Infrastructure Engineer");
   await expect(page.getByRole("link", { name: "See projects and code" })).toHaveAttribute("href", "/#projects");
-  await expect(page.getByText("Software Engineer II · Backend and platform reliability · Building fault-tolerant AI labs in public")).toBeVisible();
+  await expect(page.getByText("Software Engineer II · Backend and platform reliability · Building fault-tolerant AI and security labs in public")).toBeVisible();
   await expect(page.getByText("What each project does—and what works today.")).toBeVisible();
 
   const primaryCallToAction = await page.getByRole("link", { name: "See projects and code" }).boundingBox();
@@ -62,6 +62,7 @@ test("public identity and metadata use Ajay without surname leakage", async ({ p
     "/projects/fault-tolerant-transformer-lab",
     "/projects/distributed-scale-validation-platform",
     "/projects/voicemed-ai",
+    "/projects/evidence-first-security-harness",
   ];
 
   for (const route of routes) {
@@ -180,7 +181,7 @@ test("contact section offers one primary email action and a visible fallback add
 });
 
 test("all project case studies render", async ({ page }) => {
-  const slugs = ["fault-tolerant-transformer-lab", "distributed-scale-validation-platform", "voicemed-ai"];
+  const slugs = projects.map((project) => project.slug);
   for (const slug of slugs) {
     await page.goto(`/projects/${slug}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

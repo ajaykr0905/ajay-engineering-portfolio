@@ -23,6 +23,7 @@
   --transformer: #deded8;
   --distributed: #deded8;
   --voicemed: #deded8;
+  --security: #deded8;
   --warning: #deded8;
   --spectrum-color: #8de8ff;
   --shell: 1180px;
@@ -358,6 +359,10 @@ button:focus-visible {
   --project-accent: var(--voicemed);
 }
 
+[data-visual-key="security"] {
+  --project-accent: var(--security);
+}
+
 .constellation-glyph {
   --glyph-size: 4.75rem;
   position: relative;
@@ -562,6 +567,75 @@ button:focus-visible {
 
 .glyph-wave span:nth-child(4) {
   height: 100%;
+}
+
+.glyph-security-frame,
+.glyph-security-axis,
+.glyph-security-scan {
+  position: absolute;
+  display: block;
+}
+
+.glyph-security-frame {
+  inset: 20%;
+  border: 1px solid color-mix(in srgb, currentColor 68%, transparent);
+  border-radius: 24% 24% 46% 24%;
+  rotate: 45deg;
+}
+
+.glyph-security-axis {
+  background: color-mix(in srgb, currentColor 52%, transparent);
+}
+
+.glyph-security-axis-vertical {
+  top: 12%;
+  bottom: 12%;
+  left: 50%;
+  width: 1px;
+}
+
+.glyph-security-axis-horizontal {
+  top: 50%;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+}
+
+.glyph-security-scan {
+  z-index: 3;
+  top: 24%;
+  left: 27%;
+  width: 46%;
+  height: 2px;
+  background: currentColor;
+  box-shadow: 0 0 0.55rem currentColor;
+  opacity: 0;
+}
+
+.constellation-glyph[data-visual-key="security"] .glyph-node {
+  z-index: 2;
+  width: 9%;
+  aspect-ratio: 1;
+}
+
+.constellation-glyph[data-visual-key="security"] .glyph-node-one {
+  top: 8%;
+  left: 46%;
+}
+
+.constellation-glyph[data-visual-key="security"] .glyph-node-two {
+  top: 46%;
+  right: 8%;
+}
+
+.constellation-glyph[data-visual-key="security"] .glyph-node-three {
+  right: 46%;
+  bottom: 8%;
+}
+
+.constellation-glyph[data-visual-key="security"] .glyph-node-four {
+  top: 46%;
+  left: 8%;
 }
 
 .hero-actions,
@@ -1540,7 +1614,8 @@ main,
 
 [data-visual-key="transformer"],
 [data-visual-key="distributed"],
-[data-visual-key="voicemed"] {
+[data-visual-key="voicemed"],
+[data-visual-key="security"] {
   --project-accent: var(--muted-strong);
 }
 
@@ -1848,6 +1923,10 @@ html {
   scroll-margin-top: 5.5rem;
 }
 
+#failure-replay {
+  scroll-margin-top: 7rem;
+}
+
 .nav-list a[aria-current="page"] {
   position: relative;
   color: var(--text);
@@ -1958,6 +2037,13 @@ html {
   45% { scale: 1 1.28; filter: brightness(1.8); }
 }
 
+@keyframes glyph-security-scan {
+  0% { top: 24%; opacity: 0; }
+  16% { opacity: 1; }
+  78% { top: 74%; opacity: 1; }
+  100% { top: 74%; opacity: 0; }
+}
+
 .project-card:has([data-spectrum-primary]:focus-visible) [data-visual-key="transformer"] .glyph-orbit-outer {
   animation: glyph-orbit-forward 720ms cubic-bezier(0.22, 0.75, 0.24, 1) 1;
 }
@@ -1973,6 +2059,10 @@ html {
 .project-card:has([data-spectrum-primary]:focus-visible) [data-visual-key="voicemed"] .glyph-wave span {
   animation: glyph-wave-pulse 640ms ease-out 1;
   animation-delay: calc((var(--wave-index, 0) - 3) * 35ms);
+}
+
+.project-card:has([data-spectrum-primary]:focus-visible) [data-visual-key="security"] .glyph-security-scan {
+  animation: glyph-security-scan 720ms ease-out 1;
 }
 
 .constellation-glyph[data-visual-key="voicemed"] .glyph-wave span:nth-child(1) { --wave-index: 0; }
@@ -1999,6 +2089,10 @@ html {
   .project-card:has([data-spectrum-primary]:hover) [data-visual-key="voicemed"] .glyph-wave span {
     animation: glyph-wave-pulse 640ms ease-out 1;
     animation-delay: calc((var(--wave-index, 0) - 3) * 35ms);
+  }
+
+  .project-card:has([data-spectrum-primary]:hover) [data-visual-key="security"] .glyph-security-scan {
+    animation: glyph-security-scan 720ms ease-out 1;
   }
 }
 
@@ -2613,6 +2707,10 @@ html {
     scroll-margin-top: 4.75rem;
   }
 
+  #failure-replay {
+    scroll-margin-top: 5.5rem;
+  }
+
   .header-inner {
     min-height: 4rem;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -2723,6 +2821,7 @@ html {
   .glyph-orbit,
   .glyph-packet,
   .glyph-wave span,
+  .glyph-security-scan,
   .mission-label
 ) {
   animation: none !important;
@@ -2733,6 +2832,7 @@ html {
   .glyph-orbit,
   .glyph-packet,
   .glyph-wave span,
+  .glyph-security-scan,
   .mission-label {
     animation: none !important;
     transition: none !important;
