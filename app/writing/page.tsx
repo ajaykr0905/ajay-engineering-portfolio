@@ -47,9 +47,9 @@ export default function WritingPage() {
               <h2>{note.title}</h2>
               <p>{note.summary}</p>
               {note.href.startsWith("http") ? (
-                <a className="text-link" href={note.href} rel="noreferrer">{note.label} ↗</a>
+                <a className="text-link" data-spectrum-option href={note.href} rel="noreferrer">{note.label} <span aria-hidden="true" className="action-arrow">↗</span></a>
               ) : (
-                <Link className="text-link" href={note.href}>{note.label} ↗</Link>
+                <Link className="text-link" data-spectrum-option href={note.href}>{note.label} <span aria-hidden="true" className="action-arrow">↗</span></Link>
               )}
             </div>
           </article>

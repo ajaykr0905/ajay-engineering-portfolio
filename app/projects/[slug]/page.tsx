@@ -5,6 +5,7 @@ import { ConstellationGlyph } from "@/components/constellation-glyph";
 import { StatusPill } from "@/components/status-pill";
 import { SystemDiagram } from "@/components/system-diagram";
 import { getProject, projects } from "@/lib/projects";
+import { siteConfig } from "@/lib/site";
 
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));
@@ -35,13 +36,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     description: project.summary,
     codeRepository: project.repositoryUrl,
     programmingLanguage: project.stack,
-    author: { "@type": "Person", name: "Ajay Kumar Pondugala" },
+    author: { "@type": "Person", name: siteConfig.name },
   };
 
   return (
     <div className="shell page-shell project-page" data-visual-key={project.visualKey}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd) }} />
-      <Link className="back-link" href="/#projects">← All projects</Link>
+      <Link className="back-link" data-spectrum-option href="/#projects">
+        <span aria-hidden="true" className="action-arrow">←</span> All projects
+      </Link>
       <header className="project-header">
         <div>
           <p className="eyebrow">{project.eyebrow}</p>
@@ -131,8 +134,26 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <p>The repository is the source of truth for implementation status. The case study never upgrades a planned feature into a shipped claim.</p>
         </div>
         <div className="hero-actions">
-          {project.repositoryUrl ? <a className="button button-primary" href={project.repositoryUrl} rel="noreferrer">View repository</a> : null}
-          {project.demoUrl ? <a className="button button-secondary" href={project.demoUrl} rel="noreferrer">Open demo</a> : null}
+          {project.repositoryUrl ? (
+            <a
+              className="button button-primary"
+              data-spectrum-option
+              href={project.repositoryUrl}
+              rel="noreferrer"
+            >
+              View repository <span aria-hidden="true" className="action-arrow">↗</span>
+            </a>
+          ) : null}
+          {project.demoUrl ? (
+            <a
+              className="button button-secondary"
+              data-spectrum-option
+              href={project.demoUrl}
+              rel="noreferrer"
+            >
+              Open demo <span aria-hidden="true" className="action-arrow">↗</span>
+            </a>
+          ) : null}
         </div>
       </section>
     </div>
