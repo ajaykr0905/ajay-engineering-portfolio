@@ -1,12 +1,14 @@
 import Link from "next/link";
+import { ConstellationGlyph } from "@/components/constellation-glyph";
 import type { Project } from "@/lib/projects";
 import { StatusPill } from "@/components/status-pill";
 
 export function ProjectCard({ project, index }: { project: Project; index: number }) {
   return (
-    <article className="project-card">
+    <article className="project-card" data-pointer-surface data-visual-key={project.visualKey}>
       <div className="project-index" aria-hidden="true">0{index + 1}</div>
       <div className="project-card-content">
+        <div className="project-card-glyph"><ConstellationGlyph size="small" visualKey={project.visualKey} /></div>
         <div className="project-meta-row">
           <p className="eyebrow">{project.eyebrow}</p>
           <StatusPill

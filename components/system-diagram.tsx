@@ -1,13 +1,13 @@
 import type { Project } from "@/lib/projects";
 
-const diagramLabels: Record<Project["slug"], string[]> = {
-  "fault-tolerant-transformer-lab": ["Dataset + manifest", "Training + checkpoints", "Serving + telemetry", "Evidence artifacts"],
-  "distributed-scale-validation-platform": ["Synthetic workload", "Queue + workers", "Idempotent store", "Benchmark report"],
-  "voicemed-ai": ["Synthetic speech", "Transcribe + extract", "Human review", "Structured export"],
+const diagramLabels: Record<Project["visualKey"], string[]> = {
+  transformer: ["Dataset + manifest", "Training + checkpoints", "Serving + telemetry", "Evidence artifacts"],
+  distributed: ["Synthetic workload", "Queue + workers", "Idempotent store", "Benchmark report"],
+  voicemed: ["Synthetic speech", "Transcribe + extract", "Human review", "Structured export"],
 };
 
 export function SystemDiagram({ project }: { project: Project }) {
-  const labels = diagramLabels[project.slug];
+  const labels = diagramLabels[project.visualKey];
   return (
     <figure className="system-diagram" aria-labelledby={`${project.slug}-diagram-caption`}>
       <div className="diagram-flow">

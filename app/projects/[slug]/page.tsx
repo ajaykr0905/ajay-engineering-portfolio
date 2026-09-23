@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConstellationGlyph } from "@/components/constellation-glyph";
 import { StatusPill } from "@/components/status-pill";
 import { SystemDiagram } from "@/components/system-diagram";
 import { getProject, projects } from "@/lib/projects";
@@ -17,7 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: project.title,
     description: project.summary,
     alternates: { canonical: `/projects/${project.slug}` },
-    openGraph: { title: project.title, description: project.summary, type: "article" },
+    openGraph: { title: project.title, description: project.summary, type: "article", images: [] },
+    twitter: { title: project.title, description: project.summary, images: [] },
   };
 }
 
@@ -37,7 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   };
 
   return (
-    <div className="shell page-shell project-page">
+    <div className="shell page-shell project-page" data-visual-key={project.visualKey}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd) }} />
       <Link className="back-link" href="/#projects">← All projects</Link>
       <header className="project-header">
@@ -47,6 +49,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <p>{project.summary}</p>
         </div>
         <div className="project-header-meta">
+          <ConstellationGlyph size="large" visualKey={project.visualKey} />
           <StatusPill
             projectTitle={project.title}
             repositoryUrl={project.repositoryUrl}
