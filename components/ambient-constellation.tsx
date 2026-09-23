@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import {
+  ambientStarStateAtTime,
   createSeededStars,
   createStarConnections,
   starCountForWidth,
@@ -31,43 +32,36 @@ export function AmbientConstellation() {
     let previousFrame = 0;
     let pointer: { x: number; y: number } | null = null;
 
-    const pointFor = (star: AmbientStar, seconds: number) => ({
-      x: star.x * viewportWidth + Math.sin(seconds * 0.18 + star.phase) * star.driftX,
-      y: star.y * viewportHeight + Math.cos(seconds * 0.14 + star.phase) * star.driftY,
-    });
-
     const draw = (seconds: number) => {
       context.clearRect(0, 0, viewportWidth, viewportHeight);
-      const lightTheme = root.dataset.theme === "light";
-      const nodeColor = lightTheme ? "6, 92, 57" : "126, 238, 187";
-      const edgeColor = lightTheme ? "0, 105, 133" : "80, 217, 255";
+      const starStates = stars.map((star) => ambientStarStateAtTime(star, viewportWidth, viewportHeight, seconds));
 
       for (const connection of connections) {
-        const from = pointFor(stars[connection.from], seconds);
-        const to = pointFor(stars[connection.to], seconds);
-        const proximity = 1 - connection.distance / CONNECTION_DISTANCE;
+        const from = starStates[connection.from];
+        const to = starStates[connection.to];
+        const distance = Math.hypot(from.x - to.x, from.y - to.y);
+        if (distance > CONNECTION_DISTANCE) continue;
+        const proximity = 1 - distance / CONNECTION_DISTANCE;
         context.beginPath();
         context.moveTo(from.x, from.y);
         context.lineTo(to.x, to.y);
-        context.strokeStyle = `rgba(${edgeColor}, ${Math.max(0, proximity) * (lightTheme ? 0.09 : 0.13)})`;
+        context.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, proximity) * 0.12})`;
         context.lineWidth = 0.7;
         context.stroke();
       }
 
       if (pointer && finePointer.matches && root.dataset.motion === "active") {
         const halo = context.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, POINTER_RADIUS);
-        halo.addColorStop(0, lightTheme ? "rgba(6, 117, 72, 0.065)" : "rgba(85, 230, 165, 0.095)");
+        halo.addColorStop(0, "rgba(255, 255, 255, 0.055)");
         halo.addColorStop(1, "rgba(0, 0, 0, 0)");
         context.fillStyle = halo;
         context.fillRect(pointer.x - POINTER_RADIUS, pointer.y - POINTER_RADIUS, POINTER_RADIUS * 2, POINTER_RADIUS * 2);
       }
 
-      for (const star of stars) {
-        const point = pointFor(star, seconds);
-        const twinkle = root.dataset.motion === "active" ? 0.82 + Math.sin(seconds * 0.7 + star.phase) * 0.18 : 0.88;
+      for (const star of starStates) {
         context.beginPath();
-        context.arc(point.x, point.y, star.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(${nodeColor}, ${star.alpha * twinkle * (lightTheme ? 0.58 : 0.88)})`;
+        context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        context.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
         context.fill();
       }
     };
@@ -118,10 +112,9 @@ export function AmbientConstellation() {
 
     const observer = new MutationObserver((records) => {
       if (records.some((record) => record.attributeName === "data-motion")) syncAnimation();
-      if (records.some((record) => record.attributeName === "data-theme")) draw(0);
     });
 
-    observer.observe(root, { attributes: true, attributeFilter: ["data-motion", "data-theme"] });
+    observer.observe(root, { attributes: true, attributeFilter: ["data-motion"] });
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onPointerLeave);

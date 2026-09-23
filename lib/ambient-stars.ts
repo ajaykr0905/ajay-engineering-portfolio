@@ -1,10 +1,13 @@
 export const STAR_DENSITY = {
-  desktop: 96,
-  tablet: 64,
-  mobile: 36,
+  desktop: 128,
+  tablet: 80,
+  mobile: 48,
 } as const;
 
 export const DEFAULT_STAR_SEED = 0x41504a59;
+export const CONSTELLATION_LOOP_SECONDS = 72;
+
+export type StarDepth = 0 | 1 | 2;
 
 export type AmbientStar = {
   x: number;
@@ -14,6 +17,14 @@ export type AmbientStar = {
   phase: number;
   driftX: number;
   driftY: number;
+  depth: StarDepth;
+};
+
+export type AmbientStarState = {
+  x: number;
+  y: number;
+  radius: number;
+  alpha: number;
 };
 
 export type StarConnection = {
@@ -33,6 +44,20 @@ function mulberry32(seed: number) {
   };
 }
 
+const DEPTH_BEHAVIOR = [
+  { radius: 0.72, alpha: 0.58, drift: 0.5, orbitTurns: 1, twinkleTurns: 2 },
+  { radius: 0.9, alpha: 0.78, drift: 0.76, orbitTurns: 2, twinkleTurns: 3 },
+  { radius: 1.08, alpha: 1, drift: 1, orbitTurns: 3, twinkleTurns: 4 },
+] as const;
+
+function loopTime(seconds: number) {
+  if (!Number.isFinite(seconds)) {
+    throw new RangeError("Elapsed time must be finite.");
+  }
+
+  return ((seconds % CONSTELLATION_LOOP_SECONDS) + CONSTELLATION_LOOP_SECONDS) % CONSTELLATION_LOOP_SECONDS;
+}
+
 export function starCountForWidth(width: number) {
   if (width <= 680) return STAR_DENSITY.mobile;
   if (width <= 1024) return STAR_DENSITY.tablet;
@@ -45,15 +70,41 @@ export function createSeededStars(count: number, seed = DEFAULT_STAR_SEED): Ambi
   }
 
   const random = mulberry32(seed);
-  return Array.from({ length: count }, () => ({
+  return Array.from({ length: count }, (_, index) => ({
     x: random(),
     y: random(),
     radius: 0.55 + random() * 1.15,
     alpha: 0.2 + random() * 0.52,
     phase: random() * Math.PI * 2,
-    driftX: (random() - 0.5) * 2.4,
-    driftY: (random() - 0.5) * 1.8,
+    driftX: (random() - 0.5) * 12,
+    driftY: (random() - 0.5) * 9,
+    depth: (index % 3) as StarDepth,
   }));
+}
+
+/**
+ * Resolves a star's complete drawable state at a point in the shared loop.
+ * The modulo-normalized clock makes the returned state byte-for-byte stable
+ * at the beginning and end of every 72-second cycle.
+ */
+export function ambientStarStateAtTime(
+  star: AmbientStar,
+  width: number,
+  height: number,
+  elapsedSeconds: number,
+): AmbientStarState {
+  const behavior = DEPTH_BEHAVIOR[star.depth];
+  const progress = loopTime(elapsedSeconds) / CONSTELLATION_LOOP_SECONDS;
+  const orbitAngle = progress * Math.PI * 2 * behavior.orbitTurns + star.phase;
+  const twinkleAngle = progress * Math.PI * 2 * behavior.twinkleTurns + star.phase;
+  const twinkle = 0.78 + Math.sin(twinkleAngle) * 0.22;
+
+  return {
+    x: star.x * width + Math.sin(orbitAngle) * star.driftX * behavior.drift,
+    y: star.y * height + Math.cos(orbitAngle) * star.driftY * behavior.drift,
+    radius: star.radius * behavior.radius,
+    alpha: star.alpha * behavior.alpha * twinkle,
+  };
 }
 
 export function createStarConnections(
