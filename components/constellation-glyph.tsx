@@ -26,6 +26,7 @@ function DistributedGlyph() {
       <span className="glyph-edge glyph-edge-three" />
       <span className="glyph-edge glyph-edge-four" />
       <span className="glyph-edge glyph-edge-five" />
+      <span className="glyph-packet" />
       <span className="glyph-node glyph-node-one" />
       <span className="glyph-node glyph-node-two" />
       <span className="glyph-node glyph-node-three" />

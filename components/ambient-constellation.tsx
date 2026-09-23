@@ -17,6 +17,10 @@ import {
   type AmbientStar,
   type StarConnection,
 } from "@/lib/ambient-stars";
+import {
+  reserveConstellationIslandStars,
+  type AuthoredIslandConnection,
+} from "@/lib/constellation-islands";
 
 const FRAME_INTERVAL = 1000 / AMBIENT_FRAME_RATE;
 const POINTER_RADIUS = 160;
@@ -34,6 +38,7 @@ export function AmbientConstellation() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let stars: AmbientStar[] = [];
     let connections: StarConnection[] = [];
+    let islandConnections: AuthoredIslandConnection[] = [];
     const meteors: AmbientMeteor[] = createMeteorSchedule();
     let viewportWidth = 0;
     let viewportHeight = 0;
@@ -58,6 +63,21 @@ export function AmbientConstellation() {
         context.lineTo(to.x, to.y);
         context.strokeStyle = `rgba(255, 255, 255, ${Math.pow(Math.max(0, proximity), 0.9) * 0.18})`;
         context.lineWidth = 0.85;
+        context.stroke();
+      }
+
+      for (const connection of islandConnections) {
+        const from = starStates[connection.from];
+        const to = starStates[connection.to];
+        const gradient = context.createLinearGradient(from.x, from.y, to.x, to.y);
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.1)");
+        gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.26)");
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0.1)");
+        context.beginPath();
+        context.moveTo(from.x, from.y);
+        context.lineTo(to.x, to.y);
+        context.strokeStyle = gradient;
+        context.lineWidth = 0.95;
         context.stroke();
       }
 
@@ -165,8 +185,21 @@ export function AmbientConstellation() {
       canvas.width = Math.round(viewportWidth * pixelRatio);
       canvas.height = Math.round(viewportHeight * pixelRatio);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      stars = createSeededStars(starCountForWidth(viewportWidth));
-      connections = createStarConnections(stars, viewportWidth, viewportHeight, STAR_CONNECTION_DISTANCE, 2);
+      const seededStars = createSeededStars(starCountForWidth(viewportWidth));
+      const islandField = reserveConstellationIslandStars(seededStars, viewportWidth);
+      stars = islandField.stars;
+      islandConnections = islandField.connections;
+      connections = createStarConnections(
+        stars.slice(islandField.reservedCount),
+        viewportWidth,
+        viewportHeight,
+        STAR_CONNECTION_DISTANCE,
+        2,
+      ).map((connection) => ({
+        ...connection,
+        from: connection.from + islandField.reservedCount,
+        to: connection.to + islandField.reservedCount,
+      }));
       draw(isAnimationActive() ? currentSeconds : 0);
     };
 

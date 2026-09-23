@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MissionRail } from "@/components/mission-rail";
 import { ProjectCard } from "@/components/project-card";
 import { SectionHeading } from "@/components/section-heading";
 import { experience } from "@/lib/experience";
@@ -25,9 +26,9 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <section className="hero shell">
         <div className="hero-grid" data-pointer-surface>
-          <div className="hero-content">
+          <div className="hero-content" data-cosmos-mask>
             <p className="identity-kicker">AJAY <span aria-hidden="true">/</span> SYSTEMS PORTFOLIO</p>
-            <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, and AI engineering roles</p>
+            <p className="availability"><span aria-hidden="true" /> Software Engineer II · Backend and platform reliability · Building fault-tolerant AI labs in public</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">
@@ -43,7 +44,7 @@ export default function HomePage() {
             <p className="eyebrow">Evidence before claims</p>
             <dl>
               <div><dt>Recoverable</dt><dd>Failure injection and deterministic restart</dd></div>
-              <div><dt>Inspectable</dt><dd>Tests, traces, and versioned artifacts</dd></div>
+              <div><dt>Inspectable</dt><dd>Tests, CI runs, and versioned artifacts</dd></div>
               <div><dt>Honest</dt><dd>Proven now versus planned next</dd></div>
             </dl>
           </aside>
@@ -51,6 +52,21 @@ export default function HomePage() {
         <ul className="stack-strip" aria-label="Core technology stack">
           {stack.map((technology) => <li key={technology}>{technology}</li>)}
         </ul>
+      </section>
+
+      <section aria-labelledby="experience-heading" className="experience-strip section-tinted" id="experience">
+        <div className="shell experience-strip-inner">
+          <div>
+            <p className="eyebrow">Experience</p>
+            <h2 id="experience-heading">{experience[0].role} at {experience[0].company}</h2>
+          </div>
+          <p className="experience-strip-copy">
+            Backend delivery, release readiness, and reliability work across Go, Java, and Kubernetes systems.
+          </p>
+          <Link className="text-link" data-spectrum-option href="/experience">
+            View experience record <span aria-hidden="true" className="action-arrow">↗</span>
+          </Link>
+        </div>
       </section>
 
       <section className="section shell" id="projects">
@@ -64,27 +80,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section section-tinted">
-        <div className="shell">
-          <SectionHeading eyebrow="Experience" title="Ownership across the delivery path." />
-          <div className="experience-preview">
-            <div>
-              <p className="role-title">{experience[0].role}</p>
-              <p className="role-meta">{experience[0].company} · {experience[0].period}</p>
-              <p className="role-meta">{experience[0].product}</p>
-            </div>
-            <div>
-              <p className="experience-summary">{experience[0].summary}</p>
-              <ul className="outcome-list">
-                {experience[0].outcomes.slice(0, 3).map((outcome) => <li key={outcome}>{outcome}</li>)}
-              </ul>
-              <Link className="text-link" data-spectrum-option href="/experience">Read the complete experience record <span aria-hidden="true" className="action-arrow">↗</span></Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section shell">
+      <section className="section shell" id="research">
         <SectionHeading eyebrow="Research practice" title="A public learning trail, with runnable evidence." />
         <div className="writing-feature">
           <div className="writing-marker" aria-hidden="true">90</div>
@@ -99,7 +95,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="contact-section">
+      <section className="contact-section" id="contact">
         <div className="shell contact-inner">
           <div>
             <p className="eyebrow">Contact</p>
@@ -122,6 +118,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <MissionRail />
     </>
   );
 }

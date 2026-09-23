@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function ExperiencePage() {
   return (
     <div className="shell page-shell">
-      <header className="page-header">
+      <header className="page-header" data-cosmos-mask>
         <p className="eyebrow">Experience</p>
         <h1>Ownership from requirement to release evidence.</h1>
         <p>Public-safe summaries of engineering scope. Employer code, customer data, private architecture, and internal benchmarks are deliberately excluded.</p>

@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: "Ajay",
   title: "Distributed Systems and AI Infrastructure Engineer",
   description:
-    "I build failure-aware backend and AI systems that engineers can inspect, run, break, and verify through tests, traces, and honest limitations.",
+    "I build failure-aware backend and AI systems that engineers can inspect, run, break, and verify through tests, CI runs, versioned artifacts, and honest limitations.",
   location: "Bengaluru, India",
   url: "https://ajaykr-engineering-portfolio.vercel.app",
   website: "https://ajaykr-engineering-portfolio.vercel.app",
@@ -17,7 +17,7 @@ export const siteConfig = {
 } as const;
 
 export const primaryNavigation = [
-  { href: "/projects/fault-tolerant-transformer-lab", label: "Projects" },
+  { href: "/#projects", label: "Projects" },
   { href: "/experience", label: "Experience" },
   { href: "/writing", label: "Writing" },
   { href: "/resume", label: "Résumé" },

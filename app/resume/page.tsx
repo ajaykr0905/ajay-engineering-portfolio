@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function ResumePage() {
   return (
     <div className="shell page-shell resume-page">
-      <header className="page-header resume-header">
+      <header className="page-header resume-header" data-cosmos-mask>
         <div>
           <p className="eyebrow">Résumé</p>
           <h1>Engineering experience and evidence.</h1>

@@ -4,6 +4,9 @@ import type { Project } from "@/lib/projects";
 import { StatusPill } from "@/components/status-pill";
 
 export function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const visibleStack = project.stack.slice(0, 4);
+  const remainingStackCount = project.stack.length - visibleStack.length;
+
   return (
     <article className="project-card" data-visual-key={project.visualKey}>
       <div className="project-index" aria-hidden="true">
@@ -12,11 +15,7 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
       <div className="project-card-content">
         <div className="project-meta-row">
           <p className="eyebrow">{project.eyebrow}</p>
-          <StatusPill
-            projectTitle={project.title}
-            repositoryUrl={project.repositoryUrl}
-            status={project.status}
-          />
+          <StatusPill status={project.status} />
         </div>
 
         <div className="project-title-row">
@@ -37,24 +36,16 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
 
         <p className="project-summary">{project.summary}</p>
 
-        <p className="project-focus">
-          <strong>Current work:</strong> {project.currentFocus}
-        </p>
-
         <ul className="tag-list" aria-label={`${project.title} technologies`}>
-          {project.stack.map((item) => <li key={item}>{item}</li>)}
+          {visibleStack.map((item) => <li key={item}>{item}</li>)}
+          {remainingStackCount > 0 ? (
+            <li aria-label={`${remainingStackCount} more technologies`}>+{remainingStackCount}</li>
+          ) : null}
         </ul>
 
         <footer className="project-links">
-          <Link
-            className="text-link"
-            data-spectrum-option
-            href={`/projects/${project.slug}`}
-          >
-            See how it works <span aria-hidden="true" className="action-arrow">→</span>
-          </Link>
           {project.repositoryUrl ? (
-            <a className="text-link" data-spectrum-option href={project.repositoryUrl}>
+            <a className="text-link" data-spectrum-option href={project.repositoryUrl} rel="noreferrer">
               Open GitHub repository <span aria-hidden="true" className="action-arrow">↗</span>
             </a>
           ) : null}

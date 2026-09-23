@@ -21,6 +21,12 @@ import {
   STAR_CONNECTION_DISTANCE,
   starCountForWidth,
 } from "@/lib/ambient-stars";
+import {
+  CONSTELLATION_ISLAND_MIN_WIDTH,
+  CONSTELLATION_ISLAND_STAR_COUNT,
+  CONSTELLATION_ISLANDS,
+  reserveConstellationIslandStars,
+} from "@/lib/constellation-islands";
 
 describe("ambient constellation model", () => {
   it("places stars deterministically for a fixed seed", () => {
@@ -93,6 +99,65 @@ describe("ambient constellation model", () => {
     expect(() => createSeededStars(-1)).toThrow(RangeError);
     expect(() => createSeededStars(1.5)).toThrow(RangeError);
     expect(() => ambientStarStateAtTime(createSeededStars(1)[0], 100, 100, Number.NaN)).toThrow(RangeError);
+  });
+
+  it("reserves existing wide-screen stars for three authored constellation islands", () => {
+    const seeded = createSeededStars(STAR_DENSITY.desktop);
+    const narrow = reserveConstellationIslandStars(seeded, CONSTELLATION_ISLAND_MIN_WIDTH - 1);
+    const wide = reserveConstellationIslandStars(seeded, CONSTELLATION_ISLAND_MIN_WIDTH);
+
+    expect(CONSTELLATION_ISLAND_STAR_COUNT).toBe(18);
+    expect(CONSTELLATION_ISLANDS.map((island) => island.visualKey)).toEqual([
+      "transformer",
+      "distributed",
+      "voicemed",
+    ]);
+    expect(narrow.reservedCount).toBe(0);
+    expect(narrow.connections).toEqual([]);
+    expect(wide.stars).toHaveLength(STAR_DENSITY.desktop);
+    expect(wide.reservedCount).toBe(CONSTELLATION_ISLAND_STAR_COUNT);
+    expect(wide.connections.length).toBeGreaterThan(0);
+
+    const degrees = new Array(wide.reservedCount).fill(0) as number[];
+    for (const connection of wide.connections) {
+      degrees[connection.from] += 1;
+      degrees[connection.to] += 1;
+    }
+    expect(Math.max(...degrees)).toBeLessThanOrEqual(2);
+
+    for (const connection of wide.connections) {
+      const from = wide.stars[connection.from];
+      const to = wide.stars[connection.to];
+      const distanceAtUltraWide = Math.hypot(
+        (from.x - to.x) * 3840,
+        (from.y - to.y) * 2160,
+      );
+      expect(distanceAtUltraWide).toBeLessThanOrEqual(STAR_CONNECTION_DISTANCE);
+    }
+
+    for (let start = 0; start < wide.reservedCount; start += 6) {
+      const islandStars = wide.stars.slice(start, start + 6);
+      expect(new Set(islandStars.map((star) => star.phase)).size).toBe(1);
+      expect(new Set(islandStars.map((star) => star.driftX)).size).toBe(1);
+      expect(new Set(islandStars.map((star) => star.driftY)).size).toBe(1);
+    }
+  });
+
+  it("keeps authored constellation nodes normalized and seamless at 72 seconds", () => {
+    const field = reserveConstellationIslandStars(
+      createSeededStars(STAR_DENSITY.desktop),
+      CONSTELLATION_ISLAND_MIN_WIDTH,
+    );
+
+    for (const star of field.stars.slice(0, field.reservedCount)) {
+      expect(star.x).toBeGreaterThanOrEqual(0);
+      expect(star.x).toBeLessThanOrEqual(1);
+      expect(star.y).toBeGreaterThanOrEqual(0);
+      expect(star.y).toBeLessThanOrEqual(1);
+      expect(ambientStarStateAtTime(star, 1920, 1080, CONSTELLATION_LOOP_SECONDS)).toEqual(
+        ambientStarStateAtTime(star, 1920, 1080, 0),
+      );
+    }
   });
 });
 
