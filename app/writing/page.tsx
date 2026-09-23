@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { writingArticles } from "@/lib/writing";
 
 export const metadata: Metadata = {
   title: "Writing",
@@ -7,54 +8,39 @@ export const metadata: Metadata = {
   alternates: { canonical: "/writing" },
 };
 
-const notes = [
-  {
-    date: "Sep 2026",
-    title: "From manual gradients to an inspectable training system",
-    summary: "Why deterministic exercises, gradient checks, and explicit artifacts come before distributed scale.",
-    href: "https://github.com/ajaykr0905/ai-journey",
-    label: "AI Journey source",
-  },
-  {
-    date: "Sep 2026",
-    title: "At-least-once delivery needs an idempotency story",
-    summary: "A practical design note on stable message identity, bounded retries, acknowledgements, and duplicate writes.",
-    href: "/projects/distributed-scale-validation-platform",
-    label: "Distributed lab case study",
-  },
-  {
-    date: "Building",
-    title: "What a trustworthy ML benchmark must record",
-    summary: "Hardware, software, workload, measurement window, negative results, and the claims those results do not support.",
-    href: "/projects/fault-tolerant-transformer-lab",
-    label: "Flagship case study",
-  },
-];
-
 export default function WritingPage() {
   return (
     <div className="shell page-shell">
-      <header className="page-header">
+      <header className="page-header" data-cosmos-mask>
         <p className="eyebrow">Writing and evidence</p>
         <h1>Notes that connect implementation to engineering judgment.</h1>
-        <p>Short, inspectable records of what was tested, what failed, and what remains unproven.</p>
+        <p>Long-form records of the contracts, rejected approaches, executable tests, tradeoffs, and limitations behind the public labs.</p>
       </header>
       <section className="note-list" aria-label="Technical writing">
-        {notes.map((note) => (
-          <article className="note-card" key={note.title}>
-            <p className="note-date">{note.date}</p>
-            <div>
-              <h2>{note.title}</h2>
-              <p>{note.summary}</p>
-              {note.href.startsWith("http") ? (
-                <a className="text-link" data-spectrum-option href={note.href} rel="noreferrer">{note.label} <span aria-hidden="true" className="action-arrow">↗</span></a>
-              ) : (
-                <Link className="text-link" data-spectrum-option href={note.href}>{note.label} <span aria-hidden="true" className="action-arrow">↗</span></Link>
-              )}
+        {writingArticles.map((article) => (
+          <article className="note-card" key={article.slug}>
+            <div className="note-date">
+              <time dateTime={article.publishedAt}>{article.publishedLabel}</time>
+              <span>{article.readingMinutes} min read</span>
+            </div>
+            <div data-cosmos-mask>
+              <p className="eyebrow">{article.eyebrow}</p>
+              <h2>{article.title}</h2>
+              <p>{article.summary}</p>
+              <Link className="text-link" data-spectrum-option href={`/writing/${article.slug}`}>
+                Read the article <span aria-hidden="true" className="action-arrow">→</span>
+              </Link>
             </div>
           </article>
         ))}
       </section>
+      <aside className="writing-source-note" data-cosmos-mask aria-label="Public learning archive">
+        <p className="eyebrow">Learning archive</p>
+        <p>Daily exercises, tests, and implementation notes remain available in the public AI engineering journey.</p>
+        <a className="text-link" data-spectrum-option href="https://github.com/ajaykr0905/ai-journey" rel="noreferrer">
+          Open the AI Journey repository <span aria-hidden="true" className="action-arrow">↗</span>
+        </a>
+      </aside>
     </div>
   );
 }

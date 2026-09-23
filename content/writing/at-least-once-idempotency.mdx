@@ -1,0 +1,143 @@
+At-least-once delivery gives a broker permission to deliver a message again when it cannot prove that processing completed. That is often the right availability tradeoff, but it moves a hard question into the application: what happens when the same logical work is executed twice?
+
+This article follows the worker contract in the [Distributed Scale Validation Lab](https://github.com/ajaykr0905/distributed-scale-validation-lab). All source references are pinned to commit [`e0a1a197265869a15043df462d1f230221660ba5`](https://github.com/ajaykr0905/distributed-scale-validation-lab/tree/e0a1a197265869a15043df462d1f230221660ba5). The lab uses synthetic records and deliberately separates correctness tests from any performance claim.
+
+<ol className="article-flow" aria-label="At-least-once duplicate delivery sequence">
+  <li className="article-flow-step"><span className="article-flow-index">01</span><strong>Identify</strong><span>Assign one stable message ID to the logical operation.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">02</span><strong>Deliver</strong><span>Receive and decode a delivery without assuming it is the first copy.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">03</span><strong>Validate</strong><span>Compute a deterministic validation result tied to that message ID.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">04</span><strong>Commit once</strong><span>Use an atomic put-if-absent boundary to accept only the first durable result.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">05</span><strong>Settle</strong><span>Acknowledge both a new insert and an already-present result as successful handling.</span></li>
+</ol>
+
+## Where the duplicate window comes from
+
+Imagine a worker that performs a database write and then acknowledges the message. If the write succeeds but the process stops before the acknowledgement reaches the broker, the broker has no durable proof that work completed. It delivers the message again. Reversing the order is worse: acknowledging first and crashing before the write loses the operation.
+
+There is no ordering of two independent actions that makes them atomic by itself:
+
+```text
+write -> crash -> ack     means a duplicate may be delivered
+ack   -> crash -> write   means the work may be lost
+```
+
+The lab chooses the first ordering and makes repeated execution safe. The worker acknowledges only after the result is durably accepted. If the delivery is repeated, the same stable identity reaches an idempotent storage operation and produces no second durable record.
+
+This does not create exactly-once execution. Validation may run twice, logs may be emitted twice, and the worker may consume resources twice. The narrower guarantee is exactly-once durable effect for the result protected by the idempotency key.
+
+## Stable identity defines the operation
+
+Idempotency starts before the worker. A producer assigns a stable message ID to the logical unit of work. A retry must retain that ID; generating a fresh identifier for every publish would make duplicates indistinguishable from new operations.
+
+After decoding and validation, the worker copies the message ID into the result. The store contract exposes `PutIfAbsent`, and the PostgreSQL schema uses `message_id` as its primary key. The identity is therefore enforced at the durable boundary rather than through an in-memory “seen” set.
+
+The key must represent the operation whose duplication matters. If two genuinely distinct requests accidentally share a key, one will be suppressed. If one logical request receives multiple keys, duplication will leak through. The lab uses deterministic synthetic identities so this contract can be tested without customer data or a private schema.
+
+## Acknowledgement follows durable acceptance
+
+The main path in [`internal/worker/worker.go`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker.go#L45-L77) is intentionally ordered:
+
+1. Receive a delivery.
+2. Decode its JSON payload.
+3. Validate the synthetic endpoint.
+4. Attach the stable message ID to the result.
+5. Call `PutIfAbsent`.
+6. Acknowledge only after the store returns success.
+
+`PutIfAbsent` returns whether it inserted a new record. Both `true` and `false` are successful outcomes: `false` means the durable result already exists, so a duplicate delivery has been safely absorbed. The message can be acknowledged without writing a second row.
+
+The test [`TestDuplicateDeliveryCreatesOneResult`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go#L49-L72) publishes the same message twice. It asserts that the first processing result reports an insert, the second reports a deduplication, and the memory store contains exactly one result. That test is small enough to reveal the contract directly.
+
+## Retry only failures that may succeed later
+
+Validation and persistence can fail transiently. The worker sends those failures through `settleFailure`. While the attempt budget remains, the delivery is negatively acknowledged with requeue enabled. Once the configured maximum is reached, the message is sent to an inspectable dead-letter sink when the queue supports one, then negatively acknowledged without requeueing.
+
+Malformed JSON follows a different path. Repeating the same invalid bytes will not make decoding succeed, so the worker rejects that delivery without requeueing immediately. This distinction prevents a poison message from consuming the retry loop forever.
+
+The executable memory queue increments the attempt count when it republishes a retry. The default worker budget is three attempts. These behaviors are exercised independently:
+
+- [`TestValidationFailureRequeuesForRetry`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go#L74-L90) injects one validation failure and checks that the requeued message succeeds.
+- [`TestPersistenceFailureRequeuesForRetry`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go#L92-L109) applies the same contract to storage failure.
+- [`TestMalformedMessageIsNotRequeued`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go#L111-L126) proves malformed input does not return to the queue.
+- [`TestValidationFailureMovesToDeadLetterAfterBoundedRetries`](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go#L128-L153) verifies one dead letter after three failed attempts and no further requeue.
+
+## Approaches the design rejects
+
+### An in-memory deduplication set
+
+A local map is fast, but it disappears on restart and is not shared by concurrent workers. It can be a cache, not the authoritative idempotency boundary. The durable store must enforce uniqueness.
+
+### Acknowledge before writing
+
+Early acknowledgement reduces redelivery but permits permanent loss when the worker stops before persistence. It trades an observable duplicate problem for an unrecoverable missing-result problem.
+
+### Generate a new ID on every retry
+
+Changing identity turns one logical operation into several apparently independent operations. The store cannot suppress what the producer no longer identifies as the same work.
+
+### Retry every error forever
+
+Permanent input failures do not heal through repetition. Unlimited retry creates queue starvation, noisy logs, and unbounded operational cost. The lab separates malformed payloads from potentially transient processing failures and caps retry attempts.
+
+### Call the design “exactly once”
+
+The worker can validate a duplicate more than once. External side effects outside the guarded store could also repeat. The accurate claim is an idempotent durable result for a stable message ID, under the tested store contract.
+
+### Treat the memory adapter as broker proof
+
+Dependency-free tests make failure injection deterministic, but they do not reproduce every RabbitMQ or PostgreSQL behavior. The external adapters have a separate opt-in integration path and are not used to manufacture a production throughput claim.
+
+## Adapter boundaries and tradeoffs
+
+The lab defines queue, store, and validator interfaces. Memory adapters make the default tests quick and make ack/nack behavior easy to inspect. RabbitMQ and PostgreSQL adapters exercise durable topology, persistent messages, publisher confirmation, manual acknowledgement, and a database uniqueness constraint in the integration profile.
+
+This separation improves testability, but a transport-neutral interface can hide broker-specific behavior if it is too broad. The queue contract therefore includes explicit `Ack` and `Nack(requeue)` operations instead of pretending delivery settlement does not exist. The RabbitMQ adapter still needs its own integration test because publisher confirms, connection loss, dead-letter routing, and broker redelivery cannot be proved by a memory queue.
+
+`PutIfAbsent` also represents a deliberate tradeoff. It makes duplicate insertion safe, but it assumes that the complete durable effect fits behind one store operation. A workflow that writes several resources or calls an external service may need an inbox table, transactional outbox, state machine, or compensating action. The lab does not claim its single-result boundary solves every distributed transaction.
+
+## Reproduce the result
+
+Check out the exact commit and run the complete unit suite with the Go race detector:
+
+```bash
+git clone https://github.com/ajaykr0905/distributed-scale-validation-lab.git
+cd distributed-scale-validation-lab
+git checkout e0a1a197265869a15043df462d1f230221660ba5
+go test -race ./...
+```
+
+Run the deterministic in-memory workload separately:
+
+```bash
+go run ./cmd/lab -seed public-demo -count 10000 -workers 4
+```
+
+A successful command reports equal generated and stored counts. That is a correctness check for the declared synthetic run, not a throughput result.
+
+The RabbitMQ and PostgreSQL adapter contract is opt-in because it requires local services:
+
+```bash
+docker compose --profile infra up -d --wait
+SCALE_LAB_INTEGRATION=1 go test -tags=integration ./integration
+docker compose --profile infra down
+```
+
+The integration test verifies a confirmed publish, manual acknowledgement, and an idempotent PostgreSQL write. It does not publish latency, throughput, saturation, recovery-time, or scale numbers.
+
+## What this establishes
+
+The checked worker acknowledges only after durable acceptance. Repeated delivery with the same message ID produces one stored result. Injected validation and persistence failures requeue within a bounded budget. Malformed payloads are not retried, and exhausted transient failures reach a dead-letter sink in the memory contract.
+
+Those properties are more useful than a decorative “distributed” label because each one resolves to source code and an executable test. They also keep the claim narrow: the lab demonstrates delivery and storage semantics, not a production deployment.
+
+## Limitations
+
+- The default demonstration uses in-memory adapters; it is not a durable multi-node system.
+- RabbitMQ and PostgreSQL are covered by an opt-in adapter integration test, not a public performance benchmark.
+- The idempotency boundary protects one stored validation result. Arbitrary external side effects are outside that transaction.
+- The lab does not prove behavior during network partitions, broker failover, database failover, or simultaneous region loss.
+- No public throughput, p50/p95/p99 latency, queue-depth, recovery-time, cost, or capacity claim is made.
+- Dead-letter retention, replay authorization, alerting, and operational ownership would need explicit production policy.
+- Stable identifiers prevent duplicate durable results only when producers preserve identity correctly.
+
+The evidence is the pinned [worker implementation](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker.go), [worker tests](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/worker/worker_test.go), [queue contract](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/internal/queue/queue.go), and [architecture note](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/e0a1a197265869a15043df462d1f230221660ba5/docs/architecture.md). The article explains those artifacts; it does not upgrade them into experience or scale they have not demonstrated.

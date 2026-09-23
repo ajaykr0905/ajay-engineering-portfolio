@@ -1,0 +1,130 @@
+A checkpoint is not a bag of model weights. It is a recovery contract: after a process stops, the saved state must contain enough information to continue the same experiment rather than start a subtly different one. That distinction matters because a resumed run can look healthy while no longer being comparable to the uninterrupted run.
+
+This article examines the small, CPU-only recovery path in the [Fault-Tolerant Transformer Lab](https://github.com/ajaykr0905/fault-tolerant-transformer-lab). Every implementation link is pinned to commit [`41dcd0ea315515f63ea764225867ff569bc50316`](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/tree/41dcd0ea315515f63ea764225867ff569bc50316), so the explanation cannot silently drift away from the code it describes.
+
+<ol className="article-flow" aria-label="Deterministic checkpoint recovery sequence">
+  <li className="article-flow-step"><span className="article-flow-index">01</span><strong>Train</strong><span>Advance with a fixed configuration and deterministic batch sequence.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">02</span><strong>Checkpoint</strong><span>Write model, optimizer, progress, configuration identity, and RNG state atomically.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">03</span><strong>Interrupt</strong><span>Stop at a declared step boundary instead of allowing the direct run to finish.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">04</span><strong>Restore</strong><span>Validate the experiment identity, then restore every stateful participant.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">05</span><strong>Verify</strong><span>Compare the resumed model with the uninterrupted model using exact equality.</span></li>
+</ol>
+
+## The recovery contract
+
+Training state is distributed across more places than the model object. The checkpoint implementation deliberately records seven categories of information:
+
+1. **A schema version.** A reader must know which payload contract it is opening. An unknown schema is rejected instead of being guessed.
+2. **The full experiment configuration.** This makes the saved artifact inspectable without reconstructing every argument from memory.
+3. **A configuration fingerprint.** The loader compares the saved identity with the configuration requested for the resumed run.
+4. **Model parameters and buffers.** These are the values most people mean when they say “checkpoint,” but they are only one part of the state.
+5. **Optimizer state.** AdamW maintains moments and step-dependent values. Recreating the optimizer from hyperparameters while discarding its internal state changes the next update.
+6. **Progress counters and history.** The completed step, tokens seen, and loss history keep reporting and the next step aligned with the original run.
+7. **The PyTorch random-number-generator state.** Restoring it preserves the stochastic sequence consumed after restart.
+
+The exact payload is visible in [`src/fttl/checkpoint.py`](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/src/fttl/checkpoint.py). The important property is not that these field names are universal. They are not. The property is that every component capable of changing the next training update either survives or is reconstructed deterministically.
+
+For a larger system, that list may also include learning-rate scheduler state, gradient-scaler state, sampler position, data-loader worker seeds, distributed rank state, or the identity of a data shard. The public lab does not claim those capabilities. Its contract is intentionally narrow enough to be tested exactly on CPU.
+
+## Atomic publication prevents a half-checkpoint
+
+Capturing the correct fields still does not make a safe checkpoint if a crash can leave a partially written file at the canonical path. The lab writes the payload to a temporary sibling and publishes it with `os.replace`. On the supported local filesystem path, readers see either the previous complete checkpoint or the newly completed checkpoint; they do not treat an in-progress write as valid recovery state.
+
+This pattern separates construction from publication:
+
+```text
+serialize complete payload -> checkpoint.pt.tmp
+complete serialization returns -> no canonical path changed yet
+atomic replace              -> checkpoint.pt now names the complete payload
+```
+
+Atomic replacement is not a universal distributed-storage protocol. Object stores, network filesystems, and multi-writer checkpoint services require their own publication and fencing rules. Here it is a precise guarantee for the local, single-writer CPU experiment rather than a production-scale claim.
+
+## Configuration identity is part of correctness
+
+A checkpoint can be structurally valid and still be wrong for the requested experiment. Changing a learning rate, model shape, seed, or batch contract and then resuming from old state creates an ambiguous run: some values come from the checkpoint while others come from the new invocation.
+
+The loader therefore checks `config_fingerprint` before restoring the model and optimizer. In [`test_checkpoint_rejects_configuration_drift`](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/tests/test_recovery.py#L39-L58), the test saves a checkpoint with one learning rate, constructs a changed configuration, and expects a `CheckpointMismatchError`. Refusing to continue is the feature. A visible failure is safer than a run whose lineage is impossible to explain.
+
+The fingerprint is not presented as a security signature. It identifies configuration equality inside the experiment contract; it does not prove who created the file or defend against a malicious payload.
+
+## The proof is restart equivalence
+
+The central test creates two paths from the same tiny configuration:
+
+- The direct path trains for four steps without interruption.
+- The recovery path stops after step two, loads the emitted checkpoint, and completes the remaining steps.
+
+The test then checks that both paths report four completed steps and the same token count. More importantly, it walks every item in the final model state and calls `torch.testing.assert_close` with `rtol=0` and `atol=0`. That is an exact comparison, not “the losses looked similar” and not a chart inspected by eye. The test is [`test_checkpoint_restart_matches_uninterrupted_training`](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/tests/test_recovery.py#L23-L36).
+
+Exact equality is appropriate for this controlled CPU fixture because the model, seed, data sequence, optimizer, and execution path are deliberately small and deterministic. The same assertion may be inappropriate for a distributed GPU run that uses nondeterministic kernels or changes reduction order. In that environment, the recovery contract would need a declared tolerance and a reason that the tolerance is meaningful.
+
+## Rejected approaches
+
+### Saving weights only
+
+Weights-only snapshots are useful for inference or transfer, but they do not preserve an optimizer’s moments, the completed step, or the random sequence. Calling that a training restart would overstate what survived.
+
+### Writing directly to the canonical filename
+
+If serialization is interrupted, a direct write can leave the recovery path pointing at incomplete bytes. A temporary file plus atomic publication narrows the failure window and keeps incomplete construction away from readers.
+
+### Accepting configuration drift silently
+
+“Best effort” loading sounds convenient until a checkpoint produced under one experiment is continued under another. Rejecting the mismatch preserves a clear boundary: start a new run deliberately, or resume the original one exactly.
+
+### Comparing only the final scalar loss
+
+Two parameter states can produce close losses on a tiny batch while already following different trajectories. A scalar is useful evidence, but it is weaker than exact final state equality for this deterministic fixture.
+
+### Claiming that a controlled stop proves crash durability
+
+The test stops through an explicit `stop_after_step` path. It verifies checkpoint/restart equivalence at a declared boundary. It does not prove recovery from process termination during serialization, host loss, storage corruption, or a multi-rank failure. Those are separate failure experiments.
+
+## Tradeoffs
+
+The implementation chooses inspectability over scale. A tiny decoder-only transformer and synthetic token stream make the recovery state understandable, keep CI affordable, and allow exact comparisons. They do not demonstrate language quality or realistic training throughput.
+
+The binary checkpoint is intentionally excluded from the public repository. Tests create it in temporary directories, while checked-in JSON artifacts record the reproducible smoke configuration and result. That keeps a framework-specific binary out of source control, but it means a reviewer reproduces the binary locally rather than downloading an endorsed checkpoint.
+
+The loader uses `torch.load(..., weights_only=False)` because the lab owns the payload it just wrote and needs optimizer and RNG state. That choice is not permission to load an untrusted checkpoint. PyTorch checkpoint deserialization should remain inside a trusted artifact boundary.
+
+## Reproduce the result
+
+The following commands check out the exact source discussed here and execute only the recovery tests:
+
+```bash
+git clone https://github.com/ajaykr0905/fault-tolerant-transformer-lab.git
+cd fault-tolerant-transformer-lab
+git checkout 41dcd0ea315515f63ea764225867ff569bc50316
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[test]"
+pytest tests/test_recovery.py -q
+```
+
+To run the complete CPU verification path and create a local smoke artifact:
+
+```bash
+pytest
+fttl-train-smoke --config configs/smoke.json --output artifacts/local-smoke
+```
+
+The expected recovery-specific result is two passing tests: one for exact restart equality and one for configuration-drift rejection. The complete suite also checks causal isolation, gradients, configuration contracts, and the controlled LoRA path; those checks support the wider repository but are not evidence of GPU fault tolerance.
+
+## What this establishes
+
+For the checked CPU configuration, a run resumed from the published checkpoint reaches exactly the same final model state as the uninterrupted run. The checkpoint is configuration-bound, captures the optimizer and PyTorch RNG state, and is published through a temporary file followed by atomic replacement.
+
+That is a small claim, but it is inspectable. It gives future GPU or distributed work a clear question to answer: which additional state and failure boundaries must be incorporated before equivalence can be asserted there?
+
+## Limitations
+
+- The verified path is CPU-only and single-process.
+- The interruption occurs at a controlled step boundary, not during a torn write or host failure.
+- Only the PyTorch CPU RNG state is captured; CUDA, data-loader-worker, and distributed sampler states are outside this release.
+- Atomic `os.replace` is a local publication mechanism, not a replicated checkpoint protocol.
+- No multi-GPU, FSDP, serving, recovery-time, throughput, latency, cost, or model-quality result is claimed.
+- The configuration fingerprint detects a mismatch; it is not cryptographic provenance or an integrity signature.
+
+The relevant evidence remains the pinned [checkpoint implementation](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/src/fttl/checkpoint.py), [training path](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/src/fttl/train.py), and [recovery tests](https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/tests/test_recovery.py). The article should be read as an explanation of those artifacts, not as a substitute for them.
