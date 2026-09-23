@@ -9,11 +9,12 @@ Status recorded on 2026-09-23.
   theme, theme control, and hero image-delivery configuration are removed.
 - Public identity is `Ajay`; legal-name occurrences remain only where required by the
   résumé PDF, copyright, or functional account URLs.
-- A deterministic 144/96/56-star Canvas cosmos uses three depth levels, a 72-second
-  seamless loop, two connections per star within 120 CSS pixels, a 30 FPS cap, and
-  a 1.5 device-pixel-ratio cap. Eight seeded, non-overlapping shooting-star events
-  cross varied directions in each loop; paused and reduced-motion modes render a
-  static frame with no shooting stars.
+- A deterministic 216/144/80-star Canvas cosmos uses three depth levels, a 72-second
+  seamless loop, two connections per star within 112 CSS pixels, a 30 FPS cap, and
+  a 1.5 device-pixel-ratio cap. Six seeded bursts each send two slower shooting
+  stars through separate upper and lower lanes, guaranteeing that paired paths do
+  not intersect. Paused and reduced-motion modes render a static frame with no
+  shooting stars.
 - Editorial project rows and standalone controls expose distinct spectrum contracts.
   The CSS-only spectrum follows a 32-second cycle and has paused, reduced-motion,
   coarse-pointer, keyboard, and forced-colors fallbacks.
@@ -27,7 +28,7 @@ Status recorded on 2026-09-23.
 | Gate | Revision status |
 | --- | --- |
 | Lint and type checking | Passed |
-| Unit/data tests | 28 passed |
+| Unit/data tests | 31 passed |
 | Internal-link validation | Passed across 24 source files |
 | Production build and bundle-size check | Passed; 102 kB shared first-load JS; layout client chunk 3,688 bytes gzip |
 | Playwright desktop/mobile suite | 35 passed, 7 intentional profile skips, 0 failed |

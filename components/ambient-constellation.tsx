@@ -8,7 +8,10 @@ import {
   createMeteorSchedule,
   createSeededStars,
   createStarConnections,
+  METEOR_HEAD_GLOW_RADIUS,
   meteorStateAtTime,
+  MIN_METEOR_VIEWPORT_EDGE,
+  STAR_CONNECTION_DISTANCE,
   starCountForWidth,
   type AmbientMeteor,
   type AmbientStar,
@@ -17,7 +20,6 @@ import {
 
 const FRAME_INTERVAL = 1000 / AMBIENT_FRAME_RATE;
 const POINTER_RADIUS = 160;
-const CONNECTION_DISTANCE = 120;
 
 export function AmbientConstellation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -49,12 +51,12 @@ export function AmbientConstellation() {
         const from = starStates[connection.from];
         const to = starStates[connection.to];
         const distance = Math.hypot(from.x - to.x, from.y - to.y);
-        if (distance > CONNECTION_DISTANCE) continue;
-        const proximity = 1 - distance / CONNECTION_DISTANCE;
+        if (distance > STAR_CONNECTION_DISTANCE) continue;
+        const proximity = 1 - distance / STAR_CONNECTION_DISTANCE;
         context.beginPath();
         context.moveTo(from.x, from.y);
         context.lineTo(to.x, to.y);
-        context.strokeStyle = `rgba(255, 255, 255, ${Math.pow(Math.max(0, proximity), 0.9) * 0.22})`;
+        context.strokeStyle = `rgba(255, 255, 255, ${Math.pow(Math.max(0, proximity), 0.9) * 0.18})`;
         context.lineWidth = 0.85;
         context.stroke();
       }
@@ -81,7 +83,10 @@ export function AmbientConstellation() {
         context.fill();
       }
 
-      for (const meteor of meteors) {
+      const drawableMeteors = Math.min(viewportWidth, viewportHeight) >= MIN_METEOR_VIEWPORT_EDGE
+        ? meteors
+        : [];
+      for (const meteor of drawableMeteors) {
         const state = meteorStateAtTime(meteor, viewportWidth, viewportHeight, seconds);
         if (!state || state.alpha <= 0) continue;
 
@@ -98,12 +103,24 @@ export function AmbientConstellation() {
         context.lineWidth = 1.25;
         context.stroke();
 
-        const glow = context.createRadialGradient(state.headX, state.headY, 0, state.headX, state.headY, 9);
+        const glow = context.createRadialGradient(
+          state.headX,
+          state.headY,
+          0,
+          state.headX,
+          state.headY,
+          METEOR_HEAD_GLOW_RADIUS,
+        );
         glow.addColorStop(0, `rgba(255, 255, 255, ${state.alpha * 0.62})`);
         glow.addColorStop(0.2, `rgba(255, 255, 255, ${state.alpha * 0.2})`);
         glow.addColorStop(1, "rgba(255, 255, 255, 0)");
         context.fillStyle = glow;
-        context.fillRect(state.headX - 9, state.headY - 9, 18, 18);
+        context.fillRect(
+          state.headX - METEOR_HEAD_GLOW_RADIUS,
+          state.headY - METEOR_HEAD_GLOW_RADIUS,
+          METEOR_HEAD_GLOW_RADIUS * 2,
+          METEOR_HEAD_GLOW_RADIUS * 2,
+        );
 
         context.beginPath();
         context.arc(state.headX, state.headY, 1.2, 0, Math.PI * 2);
@@ -149,7 +166,7 @@ export function AmbientConstellation() {
       canvas.height = Math.round(viewportHeight * pixelRatio);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       stars = createSeededStars(starCountForWidth(viewportWidth));
-      connections = createStarConnections(stars, viewportWidth, viewportHeight, CONNECTION_DISTANCE, 2);
+      connections = createStarConnections(stars, viewportWidth, viewportHeight, STAR_CONNECTION_DISTANCE, 2);
       draw(isAnimationActive() ? currentSeconds : 0);
     };
 

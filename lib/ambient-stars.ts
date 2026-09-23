@@ -1,16 +1,25 @@
 export const STAR_DENSITY = {
-  desktop: 144,
-  tablet: 96,
-  mobile: 56,
+  desktop: 216,
+  tablet: 144,
+  mobile: 80,
 } as const;
 
 export const DEFAULT_STAR_SEED = 0x41504a59;
 export const CONSTELLATION_LOOP_SECONDS = 72;
 export const AMBIENT_FRAME_RATE = 30;
 export const MAX_AMBIENT_PIXEL_RATIO = 1.5;
+export const STAR_CONNECTION_DISTANCE = 112;
 export const DEFAULT_METEOR_SEED = 0x4d455445;
-export const METEORS_PER_LOOP = 8;
-export const MAX_METEORS_PER_LOOP = 10;
+export const METEORS_PER_BURST = 2;
+export const METEOR_BURSTS_PER_LOOP = 6;
+export const METEORS_PER_LOOP = METEORS_PER_BURST * METEOR_BURSTS_PER_LOOP;
+export const MAX_METEORS_PER_LOOP = 12;
+export const METEOR_DURATION_SECONDS = {
+  minimum: 2.8,
+  maximum: 3.6,
+} as const;
+export const METEOR_HEAD_GLOW_RADIUS = 9;
+export const MIN_METEOR_VIEWPORT_EDGE = 48;
 export const METEOR_TRAIL_PIXELS = {
   minimum: 56,
   maximum: 148,
@@ -43,6 +52,8 @@ export type StarConnection = {
 };
 
 export type AmbientMeteor = {
+  burstIndex: number;
+  lane: "upper" | "lower";
   startsAt: number;
   duration: number;
   startX: number;
@@ -78,17 +89,26 @@ const DEPTH_BEHAVIOR = [
   { radius: 1.15, alpha: 1, drift: 1, orbitTurns: 3, twinkleTurns: 4 },
 ] as const;
 
-// Every route begins and ends just beyond the viewport. Cycling through this
-// set gives the field directional variety without relying on runtime entropy.
-const METEOR_ROUTES = [
-  { startX: -0.12, startY: 0.08, endX: 1.12, endY: 0.72 },
-  { startX: 1.12, startY: 0.12, endX: -0.12, endY: 0.78 },
-  { startX: 0.22, startY: -0.12, endX: 0.78, endY: 1.12 },
-  { startX: 0.78, startY: 1.12, endX: 0.18, endY: -0.12 },
-  { startX: -0.12, startY: 0.8, endX: 1.12, endY: 0.22 },
-  { startX: 1.12, startY: 0.88, endX: -0.12, endY: 0.26 },
-  { startX: 0.12, startY: 1.12, endX: 0.88, endY: -0.12 },
-  { startX: 0.9, startY: -0.12, endX: 0.1, endY: 1.12 },
+// Both routes in a burst span the viewport in exactly antiparallel directions
+// while remaining inside disjoint upper and lower sky lanes. The vertical gap
+// means the complete path segments (and their collinear trails) cannot intersect.
+const METEOR_ROUTE_PAIRS = [
+  [
+    { startX: -0.14, startY: 0.08, endX: 1.14, endY: 0.3 },
+    { startX: 1.14, startY: 0.92, endX: -0.14, endY: 0.7 },
+  ],
+  [
+    { startX: 1.14, startY: 0.1, endX: -0.14, endY: 0.32 },
+    { startX: -0.14, startY: 0.9, endX: 1.14, endY: 0.68 },
+  ],
+  [
+    { startX: -0.14, startY: 0.32, endX: 1.14, endY: 0.08 },
+    { startX: 1.14, startY: 0.68, endX: -0.14, endY: 0.92 },
+  ],
+  [
+    { startX: 1.14, startY: 0.3, endX: -0.14, endY: 0.08 },
+    { startX: -0.14, startY: 0.68, endX: 1.14, endY: 0.9 },
+  ],
 ] as const;
 
 function loopTime(seconds: number) {
@@ -120,7 +140,7 @@ export function createSeededStars(count: number, seed = DEFAULT_STAR_SEED): Ambi
     x: random(),
     y: random(),
     radius: 0.65 + random() * 1.2,
-    alpha: 0.3 + random() * 0.5,
+    alpha: 0.34 + random() * 0.5,
     phase: random() * Math.PI * 2,
     driftX: (random() - 0.5) * 18,
     driftY: (random() - 0.5) * 14,
@@ -155,37 +175,51 @@ export function ambientStarStateAtTime(
 
 /**
  * Creates a sparse, repeatable meteor timetable for the shared 72-second loop.
- * Events occupy separate time slots, so the sky never becomes visually noisy.
+ * Every burst has exactly two simultaneous, lane-separated meteors. Bursts use
+ * separate time slots so no more than one pair is visible at once.
  */
 export function createMeteorSchedule(
   count = METEORS_PER_LOOP,
   seed = DEFAULT_METEOR_SEED,
 ): AmbientMeteor[] {
-  if (!Number.isInteger(count) || count < 0 || count > MAX_METEORS_PER_LOOP) {
-    throw new RangeError(`Meteor count must be an integer between 0 and ${MAX_METEORS_PER_LOOP}.`);
+  if (
+    !Number.isInteger(count)
+    || count < 0
+    || count > MAX_METEORS_PER_LOOP
+    || count % METEORS_PER_BURST !== 0
+  ) {
+    throw new RangeError(
+      `Meteor count must be an even integer between 0 and ${MAX_METEORS_PER_LOOP}.`,
+    );
   }
   if (count === 0) return [];
 
   const random = mulberry32(seed);
-  const slotSeconds = CONSTELLATION_LOOP_SECONDS / count;
-  const routeOffset = Math.floor(random() * METEOR_ROUTES.length);
+  const burstCount = count / METEORS_PER_BURST;
+  const slotSeconds = CONSTELLATION_LOOP_SECONDS / burstCount;
+  const routeOffset = Math.floor(random() * METEOR_ROUTE_PAIRS.length);
 
-  return Array.from({ length: count }, (_, index) => {
-    const route = METEOR_ROUTES[(routeOffset + index) % METEOR_ROUTES.length];
-    const offsetX = (random() - 0.5) * 0.06;
-    const offsetY = (random() - 0.5) * 0.06;
+  return Array.from({ length: burstCount }, (_, burstIndex) => {
+    const routes = METEOR_ROUTE_PAIRS[(routeOffset + burstIndex) % METEOR_ROUTE_PAIRS.length];
+    const offsetX = (random() - 0.5) * 0.04;
+    const offsetY = (random() - 0.5) * 0.04;
+    const startsAt = burstIndex * slotSeconds + slotSeconds * (0.22 + random() * 0.1);
+    const duration = METEOR_DURATION_SECONDS.minimum
+      + random() * (METEOR_DURATION_SECONDS.maximum - METEOR_DURATION_SECONDS.minimum);
 
-    return {
-      startsAt: index * slotSeconds + slotSeconds * (0.3 + random() * 0.14),
-      duration: 1.05 + random() * 0.42,
+    return routes.map((route, laneIndex) => ({
+      burstIndex,
+      lane: laneIndex === 0 ? "upper" as const : "lower" as const,
+      startsAt,
+      duration,
       startX: route.startX + offsetX,
       startY: route.startY + offsetY,
       endX: route.endX + offsetX,
       endY: route.endY + offsetY,
-      trailScale: 0.055 + random() * 0.025,
-      alpha: 0.72 + random() * 0.18,
-    };
-  });
+      trailScale: 0.06 + random() * 0.025,
+      alpha: 0.72 + random() * 0.16,
+    }));
+  }).flat();
 }
 
 /** Resolves a meteor's head, capped trail, and fade at a loop-relative time. */
@@ -227,7 +261,7 @@ export function createStarConnections(
   stars: AmbientStar[],
   width: number,
   height: number,
-  maximumDistance = 120,
+  maximumDistance = STAR_CONNECTION_DISTANCE,
   maximumConnections = 2,
 ): StarConnection[] {
   if (maximumDistance <= 0 || maximumConnections <= 0) return [];
