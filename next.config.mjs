@@ -15,9 +15,6 @@ const nextConfig = {
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   poweredByHeader: false,
   reactStrictMode: true,
-  images: {
-    deviceSizes: [360, 384, 480, 560, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -10,11 +10,11 @@ export function SiteFooter() {
           <p className="muted">Built with public-safe evidence and explicit limitations.</p>
         </div>
         <div className="footer-links" aria-label="Contact links">
-          <a href={siteConfig.gmailComposeUrl} rel="noreferrer" target="_blank">Gmail</a>
-          <a href={siteConfig.linkedin} rel="noreferrer">LinkedIn</a>
-          <a href={siteConfig.github} rel="noreferrer">GitHub</a>
-          <a href={siteConfig.website} rel="noreferrer">Website</a>
-          <Link href="/resume">Résumé</Link>
+          <a href={siteConfig.gmailComposeUrl} rel="noreferrer" target="_blank" data-spectrum-option>Gmail</a>
+          <a href={siteConfig.linkedin} rel="noreferrer" data-spectrum-option>LinkedIn</a>
+          <a href={siteConfig.github} rel="noreferrer" data-spectrum-option>GitHub</a>
+          <a href={siteConfig.website} rel="noreferrer" data-spectrum-option>Website</a>
+          <Link href="/resume" data-spectrum-option>Résumé</Link>
         </div>
       </div>
     </footer>

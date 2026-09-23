@@ -1,6 +1,6 @@
 # Ajay Engineering Portfolio
 
-Public portfolio for Ajay Kumar Pondugala, positioned around distributed systems and AI infrastructure engineering.
+Public portfolio for Ajay, positioned around distributed systems and AI infrastructure engineering.
 
 **Production:** [ajaykr-engineering-portfolio.vercel.app](https://ajaykr-engineering-portfolio.vercel.app)
 

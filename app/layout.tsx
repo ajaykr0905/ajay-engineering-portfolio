@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { AmbientConstellation } from "@/components/ambient-constellation";
@@ -6,6 +7,13 @@ import { PointerTracker } from "@/components/pointer-tracker";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/lib/site";
+
+const interTight = localFont({
+  src: "./fonts/inter-tight-latin-variable.woff2",
+  variable: "--font-inter-tight",
+  weight: "100 900",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -41,7 +49,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Ajay Pondugala — Distributed Systems and AI Infrastructure Engineer",
+        alt: `${siteConfig.name} — ${siteConfig.title}`,
       },
     ],
   },
@@ -58,16 +66,12 @@ export const metadata: Metadata = {
 
 const preferenceBoot = `
   const root = document.documentElement;
-  const systemTheme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let theme = systemTheme;
   let motionPreference = 'auto';
   try {
-    const savedTheme = localStorage.getItem('theme');
-    theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : systemTheme;
+    localStorage.removeItem('theme');
     motionPreference = localStorage.getItem('portfolio-motion') === 'paused' ? 'paused' : 'auto';
   } catch (_) {}
-  root.dataset.theme = theme;
   root.dataset.motionPreference = motionPreference;
   root.dataset.reducedMotion = reducedMotion ? 'true' : 'false';
   root.dataset.motion = reducedMotion || motionPreference === 'paused' ? 'paused' : 'active';
@@ -75,7 +79,7 @@ const preferenceBoot = `
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className={interTight.variable} lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: preferenceBoot }} /></head>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>

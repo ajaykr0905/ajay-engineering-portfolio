@@ -1,6 +1,4 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ConstellationGlyph } from "@/components/constellation-glyph";
 import { ProjectCard } from "@/components/project-card";
 import { SectionHeading } from "@/components/section-heading";
 import { experience } from "@/lib/experience";
@@ -28,51 +26,27 @@ export default function HomePage() {
       <section className="hero shell">
         <div className="hero-grid" data-pointer-surface>
           <div className="hero-content">
+            <p className="identity-kicker">AJAY <span aria-hidden="true">/</span> SYSTEMS PORTFOLIO</p>
             <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, and AI engineering roles</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">
-              <Link className="button button-primary" href="/#projects">See projects and code</Link>
-              <a className="button button-secondary" href={siteConfig.resumePath} download>Download résumé</a>
+              <Link className="button button-primary" data-spectrum-option href="/#projects">
+                See projects and code <span aria-hidden="true" className="action-arrow">↘</span>
+              </Link>
+              <a className="button button-secondary" data-spectrum-option href={siteConfig.resumePath} download>
+                Download résumé <span aria-hidden="true" className="action-arrow">↓</span>
+              </a>
             </div>
           </div>
-          <div className="hero-visual">
-            <div className="hero-portal" aria-hidden="true">
-              <span className="hero-portal-orbit hero-portal-orbit-one" />
-              <span className="hero-portal-orbit hero-portal-orbit-two" />
-              <Image
-                alt=""
-                className="hero-art"
-                height={1402}
-                priority
-                sizes="(max-width: 900px) 88vw, 34rem"
-                src="/images/astral-engineer.avif"
-                width={1122}
-              />
-            </div>
-            <nav className="hero-constellations" aria-label="Featured project constellations">
-              {featuredProjects.map((project) => (
-                <Link
-                  aria-label={project.title}
-                  className="hero-constellation-link"
-                  data-visual-key={project.visualKey}
-                  href={`/projects/${project.slug}`}
-                  key={project.slug}
-                >
-                  <ConstellationGlyph size="medium" visualKey={project.visualKey} />
-                  <span>{project.title.replace("Fault-Tolerant ", "").replace("Distributed Scale Validation Lab", "Distributed Lab")}</span>
-                </Link>
-              ))}
-            </nav>
-            <aside className="hero-proof" aria-label="Evidence before claims">
-              <p className="eyebrow">Evidence before claims</p>
-              <dl>
-                <div><dt>Recoverable</dt><dd>Failure injection and deterministic restart</dd></div>
-                <div><dt>Inspectable</dt><dd>Tests, traces, and versioned artifacts</dd></div>
-                <div><dt>Honest</dt><dd>Proven now versus planned next</dd></div>
-              </dl>
-            </aside>
-          </div>
+          <aside className="hero-proof" aria-label="Evidence before claims">
+            <p className="eyebrow">Evidence before claims</p>
+            <dl>
+              <div><dt>Recoverable</dt><dd>Failure injection and deterministic restart</dd></div>
+              <div><dt>Inspectable</dt><dd>Tests, traces, and versioned artifacts</dd></div>
+              <div><dt>Honest</dt><dd>Proven now versus planned next</dd></div>
+            </dl>
+          </aside>
         </div>
         <ul className="stack-strip" aria-label="Core technology stack">
           {stack.map((technology) => <li key={technology}>{technology}</li>)}
@@ -104,7 +78,7 @@ export default function HomePage() {
               <ul className="outcome-list">
                 {experience[0].outcomes.slice(0, 3).map((outcome) => <li key={outcome}>{outcome}</li>)}
               </ul>
-              <Link className="text-link" href="/experience">Read the complete experience record <span aria-hidden="true">↗</span></Link>
+              <Link className="text-link" data-spectrum-option href="/experience">Read the complete experience record <span aria-hidden="true" className="action-arrow">↗</span></Link>
             </div>
           </div>
         </div>
@@ -118,8 +92,8 @@ export default function HomePage() {
             <h3>AI Infrastructure Engineering Journey</h3>
             <p>Deterministic exercises, tests, experiment notes, and implementation evidence from foundations toward fault-tolerant training and inference.</p>
             <div className="inline-links">
-              <Link className="text-link" href="/writing">Explore the learning trail</Link>
-              <a className="text-link" href="https://github.com/ajaykr0905/ai-journey" rel="noreferrer">View source ↗</a>
+              <Link className="text-link" data-spectrum-option href="/writing">Explore the learning trail <span aria-hidden="true" className="action-arrow">→</span></Link>
+              <a className="text-link" data-spectrum-option href="https://github.com/ajaykr0905/ai-journey" rel="noreferrer">View source <span aria-hidden="true" className="action-arrow">↗</span></a>
             </div>
           </div>
         </div>
@@ -131,20 +105,21 @@ export default function HomePage() {
             <p className="eyebrow">Contact</p>
             <h2>Have a role or project to discuss?</h2>
             <p className="contact-copy">
-              Open a Gmail draft or email me directly at <a href={siteConfig.emailHref}>{siteConfig.email}</a>.
+              Open a Gmail draft or email me directly at <a data-spectrum-option href={siteConfig.emailHref}>{siteConfig.email}</a>.
             </p>
           </div>
           <div className="contact-actions">
             <a
               aria-label="Email Ajay in Gmail (opens in a new tab)"
               className="button button-primary"
+              data-spectrum-option
               href={siteConfig.gmailComposeUrl}
               rel="noreferrer"
               target="_blank"
             >
-              Email Ajay in Gmail <span aria-hidden="true">↗</span>
+              Email Ajay in Gmail <span aria-hidden="true" className="action-arrow">↗</span>
             </a>
-            <a className="button button-secondary" href={siteConfig.emailHref}>Use your email app</a>
+            <a className="button button-secondary" data-spectrum-option href={siteConfig.emailHref}>Use your email app</a>
           </div>
         </div>
       </section>

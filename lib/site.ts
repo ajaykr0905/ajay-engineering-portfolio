@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Ajay Kumar Pondugala",
+  name: "Ajay",
   shortName: "Ajay",
   title: "Distributed Systems and AI Infrastructure Engineer",
   description:
