@@ -22,18 +22,30 @@ Status recorded on 2026-09-23.
   monochrome 1200 × 630 social card is checked in with prompt and hash provenance.
 - The three existing `visualKey` values select constellation geometry only. No
   security-harness motif, fake live metric, or unverified capability was added.
+- Short project-glyph animations, three authored wide-screen constellation
+  islands, content-aware cosmic masks, and an accessible mission rail add
+  meaning without adding another continuous animation loop.
+- The first-screen CTA, compact mobile header, anchor offsets, route-aware
+  navigation, public-safe experience strip, and two-link project rows address
+  the recruiter-conversion issues found in the prior preview.
+- Every published metric now exposes a commit-pinned source, exact command,
+  passing CI job, environment, snapshot date, and limitation. Deterministic
+  replay panels visualize linked tests and explicitly state that they are not
+  live telemetry; no unsupported worker-kill control was added.
+- Writing now includes two substantive implementation-backed articles on
+  deterministic checkpoint recovery and at-least-once idempotency.
 
 ## Release gates
 
 | Gate | Revision status |
 | --- | --- |
 | Lint and type checking | Passed |
-| Unit/data tests | 31 passed |
-| Internal-link validation | Passed across 24 source files |
-| Production build and bundle-size check | Passed; 102 kB shared first-load JS; layout client chunk 3,688 bytes gzip |
-| Playwright desktop/mobile suite | 35 passed, 7 intentional profile skips, 0 failed |
+| Unit/data tests | 42 passed |
+| Internal-link validation | Passed across 30 source files |
+| Production build and bundle-size check | Passed; 102 kB shared first-load JS; relevant site client chunks total 6,998 bytes gzip |
+| Playwright desktop/mobile suite | 46 passed, 10 intentional profile skips, 0 failed |
 | Axe accessibility scan | Passed with no violations on home and flagship project routes |
-| Lighthouse 0.90 / 0.95 / 0.95 / 0.95 gates | Passed the configured assertions across 9 runs; median 0.99 / 1.00 / 1.00 / 1.00. Cold-start performance ranged to 0.82 while subsequent runs reached 0.99–1.00. |
+| Lighthouse 0.90 / 0.95 / 0.95 / 0.95 gates | Passed the configured assertions across 9 runs; median 0.99 / 1.00 / 1.00 / 1.00. One cold first run measured 0.82 performance; all eight subsequent runs measured 0.99. |
 | Secret-sensitive diff review | Passed; local pattern scan and independent review found no secrets or private paths |
 | Signed-out production-route verification | Pending after release candidate deployment |
 | Human macOS VoiceOver pass | Pending manual sign-off |
@@ -46,12 +58,14 @@ from the completed revision's own reports.
 ## Existing project evidence retained
 
 - Transformer lab: nine CPU verification tests, a versioned deterministic smoke
-  artifact, and a controlled full-tuning versus LoRA parameter comparison.
+  artifact, exact restart-state equality at zero tolerance, and a controlled
+  full-tuning versus LoRA parameter comparison.
 - Distributed validation lab: race-tested concurrency, bounded retries, dead
   letters, REST controls, Prometheus-format counters, RabbitMQ/PostgreSQL adapters,
-  and versioned memory-adapter samples.
+  versioned memory-adapter samples, and test-grounded duplicate/retry/dead-letter
+  replays.
 - VoiceMed AI: strict schemas, provider adapters, deterministic no-key mode,
-  human-review gating, and checked unit/contract/browser evidence.
+  human-review gating, and commit-pinned unit/contract/browser evidence.
 - Existing portfolio routes, project evidence, repository destinations, résumé
   download, metadata, sitemap, robots, and contact behavior remain in scope for the
   final regression run.

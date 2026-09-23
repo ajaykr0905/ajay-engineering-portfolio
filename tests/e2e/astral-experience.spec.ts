@@ -5,6 +5,8 @@ const publicRoutes = [
   "/",
   "/experience",
   "/writing",
+  "/writing/deterministic-checkpoint-recovery",
+  "/writing/at-least-once-idempotency",
   "/resume",
   "/projects/fault-tolerant-transformer-lab",
   "/projects/distributed-scale-validation-platform",
@@ -174,8 +176,8 @@ test("fine pointers activate a full project row while GitHub remains an isolated
   const firstColor = await card.evaluate((element) => getComputedStyle(element, "::before").backgroundColor);
   await expect(primary).toHaveCSS("color", "rgb(8, 8, 8)");
   await expect(card.locator(".project-summary")).toHaveCSS("color", "rgb(8, 8, 8)");
-  await expect(card.getByRole("link", { name: "See how it works" })).toHaveCSS("color", "rgb(8, 8, 8)");
-  await expect(card.locator("a.status-link")).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(github).toHaveCSS("color", "rgb(8, 8, 8)");
+  await expect(card.locator(".status")).toHaveCSS("color", "rgb(255, 255, 255)");
 
   await page.evaluate(() => {
     const animation = document.documentElement.getAnimations().find((candidate) =>
@@ -193,6 +195,62 @@ test("fine pointers activate a full project row while GitHub remains an isolated
   await expect(github).toHaveCSS("color", "rgb(8, 8, 8)");
   const githubBackground = await github.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(githubBackground).not.toBe("rgba(0, 0, 0, 0)");
+});
+
+test("project glyphs respond once to project intent and stop when motion is paused", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "The desktop project provides animation inspection.");
+  await page.goto("/");
+
+  const transformerCard = page.locator('article.project-card[data-visual-key="transformer"]');
+  await transformerCard.locator("[data-spectrum-primary]").focus();
+  await expect(transformerCard.locator(".glyph-orbit-outer")).toHaveCSS("animation-name", "glyph-orbit-forward");
+  await expect(transformerCard.locator(".glyph-orbit-inner")).toHaveCSS("animation-name", "glyph-orbit-reverse");
+
+  await page.getByRole("button", { name: "Pause animations" }).click();
+  await expect(transformerCard.locator(".glyph-orbit-outer")).toHaveCSS("animation-name", "none");
+  await expect(transformerCard.locator(".glyph-orbit-inner")).toHaveCSS("animation-name", "none");
+});
+
+test("wide desktops expose a semantic mission rail without adding narrow-screen clutter", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "The desktop project supplies explicit viewport widths.");
+
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto("/");
+  const missionRail = page.getByRole("navigation", { name: "Homepage sections" });
+  await expect(missionRail).toBeVisible();
+  await expect(missionRail.getByRole("link")).toHaveCount(4);
+  await expect(missionRail.getByRole("link", { name: /Experience/ })).toHaveAttribute("href", "#experience");
+  await expect(missionRail.locator('[aria-current="location"]')).toHaveCount(0);
+  await missionRail.getByRole("link", { name: /Experience/ }).click();
+  await expect(missionRail.getByRole("link", { name: /Experience/ })).toHaveAttribute("aria-current", "location");
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await expect(missionRail).toBeHidden();
+});
+
+test("failure replays expose linked-test provenance and complete manual controls", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "One browser profile covers the deterministic replay contract.");
+  await page.goto("/projects/distributed-scale-validation-platform#failure-replay");
+
+  const replay = page.locator("#failure-replay");
+  await expect(replay.getByRole("heading", { name: "Replay the verified system path" })).toBeVisible();
+  await expect(replay).toContainText("not live telemetry");
+  await expect(replay.getByRole("button", { name: "Inject duplicate" })).toHaveAttribute("aria-pressed", "true");
+  await expect(replay.locator('[aria-current="step"]')).toContainText("Publish the same identity twice");
+  await replay.getByRole("button", { name: "Next step" }).click();
+  await expect(replay.locator('[aria-current="step"]')).toContainText("Accept the first result");
+  await expect(replay.getByRole("link", { name: /pinned duplicate-delivery test/i })).toHaveAttribute(
+    "href",
+    /e0a1a197265869a15043df462d1f230221660ba5/,
+  );
+
+  await page.goto("/projects/distributed-scale-validation-platform#failure-replay");
+  await expect.poll(() => page.evaluate(() => {
+    const header = document.querySelector(".site-header")?.getBoundingClientRect();
+    const target = document.querySelector("#failure-replay")?.getBoundingClientRect();
+    if (!header || !target) return false;
+    return target.top >= header.bottom + 8;
+  })).toBe(true);
 });
 
 test("homepage and a project detail page have no automated accessibility violations", async ({ page }) => {
@@ -249,9 +307,11 @@ test("360px and 1024px layouts do not create horizontal overflow", async ({ page
 
   for (const viewport of [{ width: 360, height: 800 }, { width: 1024, height: 900 }]) {
     await page.setViewportSize(viewport);
-    await page.goto("/");
-    const dimensions = await horizontalDimensions(page);
-    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    for (const route of publicRoutes) {
+      await page.goto(route);
+      const dimensions = await horizontalDimensions(page);
+      expect(dimensions.scrollWidth, `${route} at ${viewport.width}px`).toBeLessThanOrEqual(dimensions.clientWidth);
+    }
   }
 });
 

@@ -21,7 +21,7 @@ MDX engineering notes ──┘             │
                                       └─> CI, browser tests, Lighthouse
 ```
 
-Project status is restricted to `Shipped`, `Runnable Lab`, or `Building`. Performance metrics require a human-readable method and may optionally link to a checked-in evidence artifact.
+Project status is restricted to `Shipped`, `Runnable Lab`, or `Building`. Every published metric requires a human-readable method, commit-pinned source, exact reproduction command, passing CI job, environment, snapshot date, and explicit limitation.
 
 ## Local development
 
