@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { primaryNavigation, siteConfig, stack } from "@/lib/site";
 
 describe("public identity", () => {
+  it("uses the concise public name", () => {
+    expect(siteConfig.name).toBe("Ajay");
+    expect(siteConfig.shortName).toBe("Ajay");
+  });
+
   it("uses the canonical GitHub identity", () => {
     expect(siteConfig.github).toBe("https://github.com/ajaykr0905");
   });

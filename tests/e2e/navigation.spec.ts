@@ -11,6 +11,11 @@ test("homepage communicates positioning and evidence path", async ({ page }) => 
 
 test("social metadata uses the verified site card without leaking it into project pages", async ({ page }) => {
   await page.goto("/");
+  await expect(page).toHaveTitle(`${siteConfig.name} — ${siteConfig.title}`);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    "content",
+    `${siteConfig.name} — ${siteConfig.title}`,
+  );
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
   await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
 
@@ -18,6 +23,46 @@ test("social metadata uses the verified site card without leaking it into projec
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Fault-Tolerant Transformer Lab");
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
   await expect(page.locator('meta[name="twitter:image"]')).toHaveCount(0);
+});
+
+test("public identity and metadata use Ajay without surname leakage", async ({ page }) => {
+  const routes = ["/", "/experience", "/writing", "/resume", "/projects/fault-tolerant-transformer-lab"];
+
+  for (const route of routes) {
+    await page.goto(route);
+    await expect(page.getByRole("link", { name: "Ajay", exact: true })).toBeVisible();
+
+    const publicIdentity = await page.evaluate(() => ({
+      visibleText: document.body.innerText,
+      title: document.title,
+      metadata: Array.from(document.head.querySelectorAll("meta[content]"), (element) =>
+        element.getAttribute("content") ?? "",
+      ).join(" "),
+      structuredData: Array.from(document.querySelectorAll('script[type="application/ld+json"]'), (element) =>
+        element.textContent ?? "",
+      ).join(" "),
+      accessibleLabels: Array.from(document.querySelectorAll("[aria-label], [title], [alt]"), (element) =>
+        [element.getAttribute("aria-label"), element.getAttribute("title"), element.getAttribute("alt")]
+          .filter(Boolean)
+          .join(" "),
+      ).join(" "),
+    }));
+
+    expect(publicIdentity.visibleText).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+    expect(publicIdentity.title).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+    expect(publicIdentity.metadata).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+    expect(publicIdentity.structuredData).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+    expect(publicIdentity.accessibleLabels).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+  }
+
+  await page.goto("/");
+  const personJsonLd = await page.locator('script[type="application/ld+json"]').first().textContent();
+  expect(JSON.parse(personJsonLd ?? "{}").name).toBe("Ajay");
+
+  await page.goto("/resume");
+  await expect(page.locator("iframe")).toHaveAttribute("title", "Ajay résumé");
+  await expect(page.locator("iframe")).toHaveAttribute("src", `${siteConfig.resumePath}#view=FitH`);
+  await expect(page.getByRole("link", { name: "Download PDF" })).toHaveAttribute("href", siteConfig.resumePath);
 });
 
 test("project cards expose their case study and GitHub repository", async ({ page }) => {
@@ -33,11 +78,10 @@ test("project cards expose their case study and GitHub repository", async ({ pag
       "href",
       project.repositoryUrl ?? "",
     );
-    await expect(
-      card.getByRole("link", {
-        name: `${project.status} · GitHub — open ${project.title} repository`,
-      }),
-    ).toHaveAttribute("href", project.repositoryUrl ?? "");
+    const statusLink = card.locator("a.status-link");
+    await expect(statusLink).toHaveAttribute("href", project.repositoryUrl ?? "");
+    await expect(statusLink).toContainText(project.status);
+    await expect(statusLink).toContainText("GitHub");
   }
 });
 

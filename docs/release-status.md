@@ -1,47 +1,71 @@
 # Release status
 
-Verified on 2026-09-23.
+Status recorded on 2026-09-23.
 
-## Astral redesign preview
+## Monochrome cosmos preview
 
 - Feature branch: `feature/2026-09-23-astral-portfolio`
-- Original 4:5 AVIF hero artwork and a validated 1200 × 630 social card are checked in with provenance notes.
-- A dependency-free Canvas 2D constellation, persisted pause control, reduced-motion override, pointer-safe highlights, and three project-specific CSS constellations are implemented. The unverified security-harness motif is intentionally absent.
-- Portfolio verification passes 17 unit/data tests and 27 of 27 applicable Playwright checks across desktop and Pixel 7 projects; three device-specific checks are skipped on the opposite profile by design.
-- Axe reports no WCAG A/AA violations on the homepage or transformer case study. Keyboard, non-interactive-canvas, coarse-pointer, 200% scale, metadata, and dark/light screenshot checks pass.
-- Nine Lighthouse runs meet the required gates. Minimum scores are 0.99 performance and 1.00 accessibility, best practices, and SEO on the homepage and experience page; the transformer case study scores 1.00 in all four categories.
-- The generated client layout chunk is 3,066 bytes gzip, below the 15 KB motion-code budget. The source hero AVIF is 53 KB, and the measured responsive mobile request is 31 KB.
-- Remaining release sign-off: protected-preview review and a human macOS VoiceOver pass. Production `main` remains unchanged until those manual gates are confirmed.
+- Public pages are dark-only and image-free. The previous bust/portal artwork, light
+  theme, theme control, and hero image-delivery configuration are removed.
+- Public identity is `Ajay`; legal-name occurrences remain only where required by the
+  résumé PDF, copyright, or functional account URLs.
+- A deterministic 128/80/48-star Canvas cosmos uses three depth levels, a 72-second
+  seamless loop, two connections per star within 120 CSS pixels, a 30 FPS cap, and
+  a 1.5 device-pixel-ratio cap.
+- Editorial project rows and standalone controls expose distinct spectrum contracts.
+  The CSS-only spectrum follows a 32-second cycle and has paused, reduced-motion,
+  coarse-pointer, keyboard, and forced-colors fallbacks.
+- Inter Tight is pinned and self-hosted under the SIL OFL 1.1. The typography-only
+  monochrome 1200 × 630 social card is checked in with prompt and hash provenance.
+- The three existing `visualKey` values select constellation geometry only. No
+  security-harness motif, fake live metric, or unverified capability was added.
 
-## Ready locally
+## Release gates
 
-- Recruiter-first portfolio routes, résumé download, structured metadata, sitemap, robots, Open Graph image, theme support, and responsive navigation.
-- Portfolio lint, type checking, 17 unit/data tests, internal-link validation, production build, and 27 applicable desktop/mobile browser checks.
-- Transformer CPU verification: nine tests, a versioned deterministic smoke artifact, and a controlled full-tuning versus LoRA parameter comparison.
-- Distributed validation lab: race-tested concurrency, bounded retries, dead letters, REST control API, Prometheus-format counters, implemented RabbitMQ and PostgreSQL adapters, and five versioned 10,000-entity memory-adapter samples.
-- VoiceMed AI: strict schemas, provider adapters, request boundaries, deterministic no-key mode, human-review gate, 16 unit/contract tests, four browser tests, production build, and a zero-vulnerability npm audit.
-- Canonical GitHub profile README and repository-pinning checklist.
+| Gate | Revision status |
+| --- | --- |
+| Lint and type checking | Passed |
+| Unit/data tests | 20 passed |
+| Internal-link validation | Passed across 24 source files |
+| Production build and bundle-size check | Passed; 102 kB shared first-load JS; layout client chunk 2,894 bytes gzip |
+| Playwright desktop/mobile suite | 35 passed, 7 intentional profile skips, 0 failed |
+| Axe accessibility scan | Passed with no violations on home and flagship project routes |
+| Lighthouse 0.90 / 0.95 / 0.95 / 0.95 gates | Passed in all 9 runs: 0.99 / 1.00 / 1.00 / 1.00 |
+| Secret-sensitive diff review | Passed; local pattern scan and independent review found no secrets or private paths |
+| Signed-out production-route verification | Pending after release candidate deployment |
+| Human macOS VoiceOver pass | Pending manual sign-off |
+| Protected Vercel preview review | Pending manual approval |
+
+Production `main` must remain unchanged until every automated gate passes and both
+manual gates are approved. Final counts and performance scores must be added only
+from the completed revision's own reports.
+
+## Existing project evidence retained
+
+- Transformer lab: nine CPU verification tests, a versioned deterministic smoke
+  artifact, and a controlled full-tuning versus LoRA parameter comparison.
+- Distributed validation lab: race-tested concurrency, bounded retries, dead
+  letters, REST controls, Prometheus-format counters, RabbitMQ/PostgreSQL adapters,
+  and versioned memory-adapter samples.
+- VoiceMed AI: strict schemas, provider adapters, deterministic no-key mode,
+  human-review gating, and checked unit/contract/browser evidence.
+- Existing portfolio routes, project evidence, repository destinations, résumé
+  download, metadata, sitemap, robots, and contact behavior remain in scope for the
+  final regression run.
 
 ## Public production
 
-- Production URL: <https://ajaykr-engineering-portfolio.vercel.app>
-- Unauthenticated HTTP checks return `200` for the home, experience, writing,
-  résumé, all three project case studies, and résumé PDF routes.
-- GitHub Actions passed the portfolio quality gates for the deployed `main`
-  commit.
-- All five featured repositories are public. Their latest CI runs pass.
+The canonical public address remains
+<https://ajaykr-engineering-portfolio.vercel.app>. It continues to represent the
+current `main` release until the monochrome branch clears its gates and is merged.
+The older `ajay-dev-engineer.vercel.app` address is protected by Vercel login and
+must not be used in recruiter-facing links.
 
 ## Not claimed as complete
 
 - Transformer multi-GPU execution, vLLM or SGLang serving, and serving telemetry.
-- RabbitMQ and external PostgreSQL performance benchmarks. The adapter path is implemented and compile-verified; its live Compose test is configured in CI but has not produced a public artifact yet.
+- RabbitMQ and external PostgreSQL performance benchmarks.
 - VoiceMed clinical or provider-model accuracy.
+- A tested Evidence for Security Harness repository or constellation.
 - Separate always-on deployments for the training lab, distributed lab, and AI
-  journey. Their public repositories and portfolio case studies are the current
-  recruiter-facing surfaces.
-
-## Release note
-
-The older `ajay-dev-engineer.vercel.app` address is protected by Vercel login and
-must not be used in recruiter-facing links. The canonical public address is the
-production URL above.
+  journey.
