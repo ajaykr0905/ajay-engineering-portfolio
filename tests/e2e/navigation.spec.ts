@@ -9,6 +9,17 @@ test("homepage communicates positioning and evidence path", async ({ page }) => 
   await expect(page.getByText("What each project does—and what works today.")).toBeVisible();
 });
 
+test("social metadata uses the verified site card without leaking it into project pages", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
+
+  await page.goto("/projects/fault-tolerant-transformer-lab");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Fault-Tolerant Transformer Lab");
+  await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveCount(0);
+});
+
 test("project cards expose their case study and GitHub repository", async ({ page }) => {
   await page.goto("/");
 

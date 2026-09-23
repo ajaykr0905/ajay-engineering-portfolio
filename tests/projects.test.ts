@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectSchema, projects } from "@/lib/projects";
+import { projectSchema, projects, projectVisualKeySchema } from "@/lib/projects";
 
 describe("project evidence model", () => {
   it("validates every published project", () => {
@@ -12,6 +12,11 @@ describe("project evidence model", () => {
     const slugs = projects.map((project) => project.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
     for (const slug of slugs) expect(slug).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+  });
+
+  it("assigns each published system one supported visual identity", () => {
+    expect(projects.map((project) => project.visualKey)).toEqual(["transformer", "distributed", "voicemed"]);
+    expect(projectVisualKeySchema.safeParse("security").success).toBe(false);
   });
 
   it("does not publish a metric without a method", () => {
