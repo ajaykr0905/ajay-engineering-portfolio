@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { primaryNavigation, siteConfig } from "@/lib/site";
+import { MotionToggle } from "@/components/motion-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
@@ -20,7 +21,10 @@ export function SiteHeader() {
             ))}
           </ul>
         </nav>
-        <ThemeToggle />
+        <div className="header-controls">
+          <MotionToggle />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
