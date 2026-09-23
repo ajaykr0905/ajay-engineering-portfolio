@@ -4,12 +4,62 @@ export const projectStatusSchema = z.enum(["Shipped", "Runnable Lab", "Building"
 export const projectVisualKeySchema = z.enum(["transformer", "distributed", "voicemed"]);
 export type ProjectVisualKey = z.infer<typeof projectVisualKeySchema>;
 
+export const metricEvidenceSchema = z.object({
+  sourceLabel: z.string().min(1),
+  sourceUrl: z.string().url(),
+  commitSha: z.string().regex(/^[a-f0-9]{40}$/),
+  commitUrl: z.string().url(),
+  command: z.string().min(1),
+  ciLabel: z.string().min(1),
+  ciUrl: z.string().url(),
+  environment: z.string().min(1),
+  limitation: z.string().min(1),
+}).superRefine((evidence, context) => {
+  if (!evidence.sourceUrl.includes(`/${evidence.commitSha}/`)) {
+    context.addIssue({
+      code: "custom",
+      message: "sourceUrl must be pinned to commitSha",
+      path: ["sourceUrl"],
+    });
+  }
+  if (!evidence.commitUrl.endsWith(`/commit/${evidence.commitSha}`)) {
+    context.addIssue({
+      code: "custom",
+      message: "commitUrl must resolve to commitSha",
+      path: ["commitUrl"],
+    });
+  }
+});
+
 const metricSchema = z.object({
   value: z.string().min(1),
   label: z.string().min(1),
   method: z.string().min(1),
-  evidenceUrl: z.string().url().optional(),
+  evidence: metricEvidenceSchema,
 });
+
+export const replayStepStateSchema = z.enum(["input", "processing", "failure", "recovery", "verified"]);
+
+export const replayScenarioSchema = z.object({
+  id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  label: z.string().min(1),
+  outcome: z.string().min(1),
+  sourceLabel: z.string().min(1),
+  sourceUrl: z.string().url().refine(
+    (url) => /\/(?:blob|tree)\/[a-f0-9]{40}\//.test(url),
+    "Replay evidence must use a commit-pinned source URL",
+  ),
+  limitation: z.string().min(1),
+  steps: z.array(
+    z.object({
+      title: z.string().min(1),
+      detail: z.string().min(1),
+      state: replayStepStateSchema,
+    }),
+  ).min(3),
+});
+
+export type ReplayScenario = z.infer<typeof replayScenarioSchema>;
 
 export const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
@@ -24,6 +74,7 @@ export const projectSchema = z.object({
   stack: z.array(z.string().min(1)).min(1),
   repositoryUrl: z.string().url().optional(),
   demoUrl: z.string().url().optional(),
+  demoPath: z.string().regex(/^\/.*#[a-z0-9-]+$/).optional(),
   problem: z.string().min(1),
   constraints: z.array(z.string().min(1)).min(1),
   decisions: z.array(
@@ -37,10 +88,28 @@ export const projectSchema = z.object({
   verification: z.array(z.string().min(1)).min(1),
   limitations: z.array(z.string().min(1)).min(1),
   metrics: z.array(metricSchema),
+  replayScenarios: z.array(replayScenarioSchema).min(1),
   lastVerified: z.string().date(),
 });
 
 export type Project = z.infer<typeof projectSchema>;
+
+const transformerCommit = "41dcd0ea315515f63ea764225867ff569bc50316";
+const transformerRepository = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab";
+const transformerCommitUrl = `${transformerRepository}/commit/${transformerCommit}`;
+const transformerCiUrl = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/35731966039/job/106759520958";
+
+const distributedCommit = "e0a1a197265869a15043df462d1f230221660ba5";
+const distributedRepository = "https://github.com/ajaykr0905/distributed-scale-validation-lab";
+const distributedCommitUrl = `${distributedRepository}/commit/${distributedCommit}`;
+const distributedUnitCiUrl = "https://github.com/ajaykr0905/distributed-scale-validation-lab/actions/runs/35731961184/job/106759506319";
+const distributedAdapterCiUrl = "https://github.com/ajaykr0905/distributed-scale-validation-lab/actions/runs/35731961184/job/106759506059";
+
+const voiceMedCommit = "824b2331c476ccfab320e5b186f1846ae21d79f3";
+const voiceMedRepository = "https://github.com/ajaykr0905/voicemed-ai";
+const voiceMedCommitUrl = `${voiceMedRepository}/commit/${voiceMedCommit}`;
+const voiceMedChecksCiUrl = "https://github.com/ajaykr0905/voicemed-ai/actions/runs/35732026537/job/106759732651";
+const voiceMedBrowserCiUrl = "https://github.com/ajaykr0905/voicemed-ai/actions/runs/35732026537/job/106759732214";
 
 const projectInput = [
   {
@@ -58,7 +127,7 @@ const projectInput = [
     stack: ["PyTorch", "Python", "pytest", "Docker", "GitHub Actions"],
     repositoryUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab",
     problem:
-      "Small model demos often stop at a successful training curve. This project treats restart safety, experimental controls, serving behavior, and negative results as first-class engineering outputs.",
+      "Small model demos often stop at a successful training curve. This project treats restart safety, experimental controls, and negative results as first-class engineering outputs.",
     constraints: [
       "The public path must run deterministically on CPU for review and CI.",
       "GPU and multi-GPU results must name the actual hardware and may never be simulated as evidence.",
@@ -76,20 +145,20 @@ const projectInput = [
           "Experiment manifests hold the dataset, seed, model, and environment fixed while changing one declared variable.",
       },
       {
-        title: "Offline public demo",
+        title: "Inspectable CPU evidence",
         detail:
-          "Zero-cost hosting replays signed benchmark artifacts while the complete training and serving stack remains locally reproducible.",
+          "The public portfolio links pinned CPU tests and versioned artifacts. Training is locally reproducible at the documented scale; serving and GPU work remain explicitly planned.",
       },
     ],
     tradeoffs: [
       "A small public model gives reviewers reproducibility rather than impressive but unauditable scale.",
-      "Static benchmark playback is reliable and free, but it is not presented as a live GPU endpoint.",
+      "Pinned test and artifact replay is reliable and free, but it is not live training, serving, or a GPU endpoint.",
     ],
     failureModes: [
-      "Interrupted training between checkpoint writes.",
+      "A controlled stop after checkpoint publication followed by restart.",
       "Checkpoint or configuration mismatch during restart.",
-      "Serving worker termination during concurrent requests.",
-      "Telemetry loss that makes recovery time unverifiable.",
+      "Causal-mask or gradient regressions caught by focused tests.",
+      "Corrupt, truncated, and mid-write crash recovery remain known untested boundaries.",
     ],
     verification: [
       "Finite-difference and framework gradient checks.",
@@ -106,19 +175,81 @@ const projectInput = [
         value: "9 / 9",
         label: "CPU verification tests passing",
         method: "Pytest suite covering contracts, causal isolation, autograd gradients, checkpoint restart equality, configuration drift rejection, and LoRA behavior.",
-        evidenceUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/tree/main/tests",
+        evidence: {
+          sourceLabel: "Pinned test suite",
+          sourceUrl: `${transformerRepository}/tree/${transformerCommit}/tests`,
+          commitSha: transformerCommit,
+          commitUrl: transformerCommitUrl,
+          command: "pytest -q",
+          ciLabel: "Passing deterministic CPU verification job",
+          ciUrl: transformerCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Python 3.12 · CPU",
+          limitation: "Small synthetic CPU fixtures; no GPU, model-quality, throughput, or production claim.",
+        },
       },
       {
         value: "5.5%",
         label: "trainable parameters in the controlled LoRA run",
         method: "The same initialized model, synthetic batches, seed, and step budget were used for full tuning and LoRA; 1,536 LoRA parameters were trainable versus 28,032 in full tuning. This is a parameter-efficiency result, not a quality claim.",
-        evidenceUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/main/artifacts/tuning-comparison/result.json",
+        evidence: {
+          sourceLabel: "Pinned comparison artifact",
+          sourceUrl: `${transformerRepository}/blob/${transformerCommit}/artifacts/tuning-comparison/result.json`,
+          commitSha: transformerCommit,
+          commitUrl: transformerCommitUrl,
+          command: "fttl-compare-tuning --config configs/smoke.json --output artifacts/tuning-comparison/result.json",
+          ciLabel: "Passing deterministic CPU verification job",
+          ciUrl: transformerCiUrl,
+          environment: "Local CPU artifact · Python 3.12.14 · PyTorch 2.14.0; command also runs in CI",
+          limitation: "Parameter-efficiency observation on a randomly initialized tiny model and synthetic tokens; not a quality comparison.",
+        },
       },
       {
-        value: "512",
-        label: "tokens in the checked smoke artifact",
-        method: "Eight deterministic CPU steps with the seed, model configuration, Python version, and PyTorch version recorded in the result artifact.",
-        evidenceUrl: "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/tree/main/artifacts/cpu-smoke",
+        value: "rtol 0 / atol 0",
+        label: "resumed model-state equality",
+        method: "A four-step uninterrupted CPU run is compared with a run resumed from the step-two checkpoint; every model-state tensor must match with zero relative and absolute tolerance.",
+        evidence: {
+          sourceLabel: "Pinned restart-equality test",
+          sourceUrl: `${transformerRepository}/blob/${transformerCommit}/tests/test_recovery.py#L23-L36`,
+          commitSha: transformerCommit,
+          commitUrl: transformerCommitUrl,
+          command: "pytest -q tests/test_recovery.py::test_checkpoint_restart_matches_uninterrupted_training",
+          ciLabel: "Passing deterministic CPU verification job",
+          ciUrl: transformerCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Python 3.12 · deterministic CPU fixture",
+          limitation: "Proves model-tensor equality for one tiny CPU fixture; it does not prove process-kill durability, GPU recovery, or distributed restart.",
+        },
+      },
+    ],
+    replayScenarios: [
+      {
+        id: "checkpoint-recovery",
+        label: "Checkpoint recovery",
+        outcome: "The resumed model reaches the same four-step state as the uninterrupted run with rtol=0 and atol=0.",
+        sourceLabel: "Inspect the pinned recovery test",
+        sourceUrl: `${transformerRepository}/blob/${transformerCommit}/tests/test_recovery.py#L23-L36`,
+        limitation: "A deterministic replay of a tiny CPU unit test—not a live training process or GPU failure drill.",
+        steps: [
+          {
+            title: "Run the control path",
+            detail: "Train the declared tiny configuration for four uninterrupted deterministic CPU steps.",
+            state: "input",
+          },
+          {
+            title: "Stop at step two",
+            detail: "Run the same configuration to step two and save the model, optimizer, configuration fingerprint, counters, and RNG state.",
+            state: "failure",
+          },
+          {
+            title: "Resume the same run",
+            detail: "Load the step-two checkpoint and finish the remaining two steps with the same deterministic batches.",
+            state: "recovery",
+          },
+          {
+            title: "Compare every model tensor",
+            detail: "Require equal step and token counts, then compare the resumed and uninterrupted state dictionaries with rtol=0 and atol=0.",
+            state: "verified",
+          },
+        ],
       },
     ],
     lastVerified: "2026-09-22",
@@ -137,6 +268,7 @@ const projectInput = [
     roleAlignment: ["Distributed systems", "Backend engineering", "Platform reliability"],
     stack: ["Go", "REST", "Prometheus", "PostgreSQL", "Kubernetes", "Docker"],
     repositoryUrl: "https://github.com/ajaykr0905/distributed-scale-validation-lab",
+    demoPath: "/projects/distributed-scale-validation-platform#failure-replay",
     problem:
       "At-least-once delivery is easy to describe and difficult to validate. The lab makes duplicate delivery, retry behavior, idempotency, and persistence failures reproducible with synthetic inputs.",
     constraints: [
@@ -183,15 +315,160 @@ const projectInput = [
     ],
     metrics: [
       {
-        value: "10,000",
-        label: "synthetic entities stored without loss",
-        method: "Five local memory-adapter samples used the same declared seed and recorded equal generated and stored counts; this is not a production throughput claim.",
-        evidenceUrl: "https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/main/artifacts/2026-09-22-memory-10000.json",
+        value: "2 → 1",
+        label: "duplicate deliveries produce one result",
+        method: "The deterministic worker test publishes the same stable message twice, processes both deliveries, and requires the first insert to succeed, the second to deduplicate, and the store length to remain one.",
+        evidence: {
+          sourceLabel: "Pinned duplicate-delivery test",
+          sourceUrl: `${distributedRepository}/blob/${distributedCommit}/internal/worker/worker_test.go#L49-L72`,
+          commitSha: distributedCommit,
+          commitUrl: distributedCommitUrl,
+          command: "go test -race ./internal/worker -run '^TestDuplicateDeliveryCreatesOneResult$' -count=1",
+          ciLabel: "Passing race-test job",
+          ciUrl: distributedUnitCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.23 · in-memory queue and store",
+          limitation: "Unit-level adapter result; it is not a broker-redelivery, production-throughput, or exactly-once-delivery claim.",
+        },
       },
       {
-        value: "0",
-        label: "employer datasets",
-        method: "Clean-room project boundary documented in the repository.",
+        value: "3 → DLQ",
+        label: "bounded attempts before dead-lettering",
+        method: "An injected validation failure is processed three times with a maximum-attempt budget of three, after which exactly one dead letter exists and the work queue is empty.",
+        evidence: {
+          sourceLabel: "Pinned bounded-retry test",
+          sourceUrl: `${distributedRepository}/blob/${distributedCommit}/internal/worker/worker_test.go#L128-L153`,
+          commitSha: distributedCommit,
+          commitUrl: distributedCommitUrl,
+          command: "go test -race ./internal/worker -run '^TestValidationFailureMovesToDeadLetterAfterBoundedRetries$' -count=1",
+          ciLabel: "Passing race-test job",
+          ciUrl: distributedUnitCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.23 · injected validation failure · in-memory queue",
+          limitation: "Deterministic in-memory failure injection; not a live worker kill or RabbitMQ dead-letter performance result.",
+        },
+      },
+      {
+        value: "1 / 1",
+        label: "external adapter contract passing",
+        method: "The integration job starts RabbitMQ and PostgreSQL, confirms one persistent publish, manually acknowledges the processed delivery, and requires the stable message ID to exist in PostgreSQL.",
+        evidence: {
+          sourceLabel: "Pinned external-adapter test",
+          sourceUrl: `${distributedRepository}/blob/${distributedCommit}/integration/adapters_test.go#L19-L60`,
+          commitSha: distributedCommit,
+          commitUrl: distributedCommitUrl,
+          command: "docker compose --profile infra up -d --wait && SCALE_LAB_INTEGRATION=1 go test -tags=integration ./integration",
+          ciLabel: "Passing RabbitMQ and PostgreSQL adapter job",
+          ciUrl: distributedAdapterCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Go 1.23 · RabbitMQ 3 management-alpine · PostgreSQL 16-alpine",
+          limitation: "Single-message adapter contract; no failure injection, concurrency benchmark, or external-path performance claim.",
+        },
+      },
+      {
+        value: "10,000 / 10,000",
+        label: "synthetic entities generated and stored",
+        method: "Five declared local memory-adapter samples used the same seed, eight workers, and bounded attempts; each sample reports equal generated and stored counts.",
+        evidence: {
+          sourceLabel: "Pinned local-run artifact",
+          sourceUrl: `${distributedRepository}/blob/${distributedCommit}/artifacts/2026-09-22-memory-10000.json`,
+          commitSha: distributedCommit,
+          commitUrl: distributedCommitUrl,
+          command: "go run ./cmd/lab -seed portfolio-verified -count 10000 -workers 8 -max-attempts 3",
+          ciLabel: "Passing race-test job at the pinned commit",
+          ciUrl: distributedUnitCiUrl,
+          environment: "macOS 26.6.2 · arm64 · Go 1.26.4 · memory adapters · no external services",
+          limitation: "Local functional run captured before publication; not a RabbitMQ/PostgreSQL result or hardware-independent throughput claim.",
+        },
+      },
+    ],
+    replayScenarios: [
+      {
+        id: "duplicate-delivery",
+        label: "Inject duplicate",
+        outcome: "Two deliveries with the same stable message ID leave exactly one stored result.",
+        sourceLabel: "Inspect the pinned duplicate-delivery test",
+        sourceUrl: `${distributedRepository}/blob/${distributedCommit}/internal/worker/worker_test.go#L49-L72`,
+        limitation: "Deterministic memory-adapter test replay—not live broker traffic or production telemetry.",
+        steps: [
+          {
+            title: "Publish the same identity twice",
+            detail: "The test places two messages carrying the same stable message ID onto the in-memory queue.",
+            state: "input",
+          },
+          {
+            title: "Accept the first result",
+            detail: "The worker validates the first delivery and the idempotent store inserts its result.",
+            state: "processing",
+          },
+          {
+            title: "Suppress the duplicate",
+            detail: "The second delivery validates, but PutIfAbsent reports that the stable message ID already exists.",
+            state: "recovery",
+          },
+          {
+            title: "Assert one stored result",
+            detail: "The test requires first.Inserted=true, second.Inserted=false, and a final store length of one.",
+            state: "verified",
+          },
+        ],
+      },
+      {
+        id: "retry-failed-job",
+        label: "Retry failed job",
+        outcome: "One injected validation failure is requeued, then the second attempt succeeds with one stored result.",
+        sourceLabel: "Inspect the pinned retry test",
+        sourceUrl: `${distributedRepository}/blob/${distributedCommit}/internal/worker/worker_test.go#L74-L90`,
+        limitation: "Controlled in-memory validation failure; the current application runner does not expose this as a live API control.",
+        steps: [
+          {
+            title: "Publish one deterministic job",
+            detail: "The test queues a stable synthetic message and configures the validator to fail once.",
+            state: "input",
+          },
+          {
+            title: "Fail the first validation",
+            detail: "The first ProcessOne call returns the injected error and negatively acknowledges the delivery for requeue.",
+            state: "failure",
+          },
+          {
+            title: "Process the requeued job",
+            detail: "The second ProcessOne call receives the incremented attempt and completes validation and persistence.",
+            state: "recovery",
+          },
+          {
+            title: "Assert bounded recovery",
+            detail: "The test requires exactly two validator calls and one stored result.",
+            state: "verified",
+          },
+        ],
+      },
+      {
+        id: "bounded-dead-letter",
+        label: "Exhaust retries",
+        outcome: "Three failed attempts produce one inspectable dead letter and no remaining queued copy.",
+        sourceLabel: "Inspect the pinned dead-letter test",
+        sourceUrl: `${distributedRepository}/blob/${distributedCommit}/internal/worker/worker_test.go#L128-L153`,
+        limitation: "Injected in-memory failure path; it does not claim a real worker process was killed.",
+        steps: [
+          {
+            title: "Declare the retry budget",
+            detail: "The worker receives one stable job, a validator that keeps failing, and a maximum of three attempts.",
+            state: "input",
+          },
+          {
+            title: "Requeue attempts one and two",
+            detail: "Each failed validation is surfaced and the unsettled job returns to the queue with an incremented attempt count.",
+            state: "failure",
+          },
+          {
+            title: "Dead-letter attempt three",
+            detail: "The exhausted message is recorded once in the dead-letter sink and is negatively acknowledged without requeue.",
+            state: "recovery",
+          },
+          {
+            title: "Assert the terminal state",
+            detail: "The dead letter records three attempts and the queue remains empty after the scenario.",
+            state: "verified",
+          },
+        ],
       },
     ],
     lastVerified: "2026-09-22",
@@ -247,7 +524,7 @@ const projectInput = [
     verification: [
       "Schema and API contract tests.",
       "Deterministic no-key end-to-end browser flow.",
-      "Small public evaluation set with documented limitations.",
+      "One public synthetic fixture and bundled reference-data contracts.",
       "No persisted audio or personal health information in the public demo.",
     ],
     limitations: [
@@ -258,14 +535,66 @@ const projectInput = [
       {
         value: "16 / 16",
         label: "unit and contract tests passing",
-        method: "Vitest covers public datasets, strict clinical schemas, rejected malformed output, and the deterministic provider contract.",
-        evidenceUrl: "https://github.com/ajaykr0905/voicemed-ai/tree/main/src/__tests__",
+        method: "Vitest covers the public synthetic fixture, bundled reference-data contracts, strict clinical schemas, rejected malformed output, and the deterministic provider contract.",
+        evidence: {
+          sourceLabel: "Pinned unit and contract tests",
+          sourceUrl: `${voiceMedRepository}/tree/${voiceMedCommit}/src/__tests__`,
+          commitSha: voiceMedCommit,
+          commitUrl: voiceMedCommitUrl,
+          command: "npm run test",
+          ciLabel: "Passing checks job",
+          ciUrl: voiceMedChecksCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Node.js 22 · deterministic synthetic fixtures",
+          limitation: "Contract and fixture coverage only; no clinical-accuracy, diagnosis, or real-provider reliability claim.",
+        },
       },
       {
         value: "4 / 4",
         label: "desktop and mobile browser checks passing",
         method: "Playwright verifies public safety copy and that export remains disabled until human review is explicit.",
-        evidenceUrl: "https://github.com/ajaykr0905/voicemed-ai/tree/main/tests/e2e",
+        evidence: {
+          sourceLabel: "Pinned review-gate browser test",
+          sourceUrl: `${voiceMedRepository}/blob/${voiceMedCommit}/tests/e2e/demo.spec.ts#L3-L19`,
+          commitSha: voiceMedCommit,
+          commitUrl: voiceMedCommitUrl,
+          command: "npm run build && npm run test:e2e",
+          ciLabel: "Passing browser job",
+          ciUrl: voiceMedBrowserCiUrl,
+          environment: "GitHub Actions ubuntu-latest · Node.js 22 · Chromium desktop and Pixel 7 emulation",
+          limitation: "Synthetic no-key browser workflow; it does not measure clinical accuracy or external-provider performance.",
+        },
+      },
+    ],
+    replayScenarios: [
+      {
+        id: "human-review-gate",
+        label: "Human review gate",
+        outcome: "The download control remains disabled until the reviewer explicitly confirms the synthetic draft.",
+        sourceLabel: "Inspect the pinned browser test",
+        sourceUrl: `${voiceMedRepository}/blob/${voiceMedCommit}/tests/e2e/demo.spec.ts#L3-L12`,
+        limitation: "Synthetic browser-test replay—not a clinical workflow, accuracy result, or medical-device claim.",
+        steps: [
+          {
+            title: "Open the documentation lab",
+            detail: "The browser test enters the public console and starts the deterministic synthetic example.",
+            state: "input",
+          },
+          {
+            title: "Render an unreviewed draft",
+            detail: "The interface labels the generated content as unreviewed and exposes the review state explicitly.",
+            state: "processing",
+          },
+          {
+            title: "Keep export locked",
+            detail: "Before confirmation, the Download reviewed draft control must remain disabled.",
+            state: "failure",
+          },
+          {
+            title: "Confirm and unlock",
+            detail: "After the human-review checkbox is selected, the same browser test requires the download control to become enabled.",
+            state: "verified",
+          },
+        ],
       },
     ],
     lastVerified: "2026-09-22",

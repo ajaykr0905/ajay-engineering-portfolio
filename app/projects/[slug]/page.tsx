@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConstellationGlyph } from "@/components/constellation-glyph";
+import { FailureReplay } from "@/components/failure-replay";
 import { StatusPill } from "@/components/status-pill";
-import { SystemDiagram } from "@/components/system-diagram";
 import { getProject, projects } from "@/lib/projects";
 import { siteConfig } from "@/lib/site";
 
@@ -45,7 +45,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <Link className="back-link" data-spectrum-option href="/#projects">
         <span aria-hidden="true" className="action-arrow">←</span> All projects
       </Link>
-      <header className="project-header">
+      <header className="project-header" data-cosmos-mask>
         <div>
           <p className="eyebrow">{project.eyebrow}</p>
           <h1>{project.title}</h1>
@@ -65,15 +65,55 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         {project.stack.map((item) => <li key={item}>{item}</li>)}
       </ul>
 
-      <SystemDiagram project={project} />
+      <FailureReplay projectTitle={project.title} scenarios={project.replayScenarios} />
 
       {project.metrics.length > 0 ? (
-        <section className="metric-grid" aria-label="Verified project metrics">
+        <section className="metric-grid" aria-label="Project metrics with reproducible sources">
           {project.metrics.map((metric) => (
             <article className="metric-card" key={`${metric.value}-${metric.label}`}>
               <p className="metric-value">{metric.value}</p>
               <h2>{metric.label}</h2>
               <p>{metric.method}</p>
+              <div className="metric-evidence">
+                <a
+                  className="metric-source-link"
+                  data-spectrum-option
+                  href={metric.evidence.sourceUrl}
+                  rel="noreferrer"
+                >
+                  {metric.evidence.sourceLabel} <span aria-hidden="true" className="action-arrow">↗</span>
+                </a>
+                <dl className="metric-provenance">
+                  <div>
+                    <dt>Commit</dt>
+                    <dd>
+                      <a href={metric.evidence.commitUrl} rel="noreferrer">
+                        <code>{metric.evidence.commitSha.slice(0, 7)}</code>
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Reproduce</dt>
+                    <dd><code>{metric.evidence.command}</code></dd>
+                  </div>
+                  <div>
+                    <dt>CI</dt>
+                    <dd><a href={metric.evidence.ciUrl} rel="noreferrer">{metric.evidence.ciLabel}</a></dd>
+                  </div>
+                  <div>
+                    <dt>Environment</dt>
+                    <dd>{metric.evidence.environment}</dd>
+                  </div>
+                  <div>
+                    <dt>Snapshot</dt>
+                    <dd><time dateTime={project.lastVerified}>{project.lastVerified}</time></dd>
+                  </div>
+                  <div>
+                    <dt>Limit</dt>
+                    <dd>{metric.evidence.limitation}</dd>
+                  </div>
+                </dl>
+              </div>
             </article>
           ))}
         </section>
@@ -133,9 +173,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <p>The repository is the source of truth for implementation status. The case study never upgrades a planned feature into a shipped claim.</p>
         </div>
         <div className="hero-actions">
+          {project.demoPath ? (
+            <Link className="button button-primary" data-spectrum-option href={project.demoPath}>
+              Replay tested behavior <span aria-hidden="true" className="action-arrow">→</span>
+            </Link>
+          ) : null}
           {project.repositoryUrl ? (
             <a
-              className="button button-primary"
+              className={`button ${project.demoPath ? "button-secondary" : "button-primary"}`}
               data-spectrum-option
               href={project.repositoryUrl}
               rel="noreferrer"
