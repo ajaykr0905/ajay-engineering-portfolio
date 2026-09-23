@@ -85,17 +85,22 @@ test("project cards expose their case study and GitHub repository", async ({ pag
   }
 });
 
-test("contact section offers Gmail and email-app fallbacks", async ({ page }) => {
+test("contact section offers one primary email action and a visible fallback address", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Email Ajay in Gmail (opens in a new tab)" })).toHaveAttribute(
+  const contactSection = page.locator(".contact-section");
+  await expect(contactSection.locator(".contact-actions a")).toHaveCount(1);
+  await expect(contactSection.getByRole("link", { name: "Email Ajay in Gmail (opens in a new tab)" })).toHaveAttribute(
     "href",
     siteConfig.gmailComposeUrl,
   );
-  await expect(page.getByRole("link", { name: "Use your email app" })).toHaveAttribute(
+  await expect(contactSection.getByRole("link", { name: "Email Ajay in Gmail (opens in a new tab)" })).toHaveText(
+    /Email Ajay/,
+  );
+  await expect(contactSection.getByRole("link", { name: "Use your email app" })).toHaveCount(0);
+  await expect(contactSection.getByRole("link", { name: siteConfig.email })).toHaveAttribute(
     "href",
     siteConfig.emailHref,
   );
-  await expect(page.getByRole("link", { name: siteConfig.email })).toHaveAttribute("href", siteConfig.emailHref);
 });
 
 test("all project case studies render", async ({ page }) => {

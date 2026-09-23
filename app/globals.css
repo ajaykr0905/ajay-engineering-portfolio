@@ -110,7 +110,7 @@ button:focus-visible {
   z-index: 0;
   width: 100vw;
   height: 100vh;
-  opacity: 0.82;
+  opacity: 1;
   pointer-events: none;
 }
 
@@ -980,6 +980,13 @@ main,
   gap: 0.8rem;
 }
 
+.contact-actions .button {
+  min-height: 3rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
 .site-footer {
   border-top: 1px solid var(--border);
   padding-block: 2rem;
@@ -1722,8 +1729,8 @@ main,
 
 .section-tinted,
 .contact-section {
-  background: rgb(9 9 9 / 0.86);
-  backdrop-filter: blur(8px);
+  background: rgb(9 9 9 / 0.7);
+  backdrop-filter: blur(2px);
 }
 
 .writing-feature,

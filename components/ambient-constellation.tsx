@@ -2,15 +2,20 @@
 
 import { useEffect, useRef } from "react";
 import {
+  AMBIENT_FRAME_RATE,
   ambientStarStateAtTime,
+  cappedCanvasPixelRatio,
+  createMeteorSchedule,
   createSeededStars,
   createStarConnections,
+  meteorStateAtTime,
   starCountForWidth,
+  type AmbientMeteor,
   type AmbientStar,
   type StarConnection,
 } from "@/lib/ambient-stars";
 
-const FRAME_INTERVAL = 1000 / 30;
+const FRAME_INTERVAL = 1000 / AMBIENT_FRAME_RATE;
 const POINTER_RADIUS = 160;
 const CONNECTION_DISTANCE = 120;
 
@@ -24,12 +29,16 @@ export function AmbientConstellation() {
 
     const root = document.documentElement;
     const finePointer = window.matchMedia("(pointer: fine)");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let stars: AmbientStar[] = [];
     let connections: StarConnection[] = [];
+    const meteors: AmbientMeteor[] = createMeteorSchedule();
     let viewportWidth = 0;
     let viewportHeight = 0;
     let animationFrame = 0;
     let previousFrame = 0;
+    let loopStartedAt: number | null = null;
+    let currentSeconds = 0;
     let pointer: { x: number; y: number } | null = null;
 
     const draw = (seconds: number) => {
@@ -45,12 +54,12 @@ export function AmbientConstellation() {
         context.beginPath();
         context.moveTo(from.x, from.y);
         context.lineTo(to.x, to.y);
-        context.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, proximity) * 0.12})`;
-        context.lineWidth = 0.7;
+        context.strokeStyle = `rgba(255, 255, 255, ${Math.pow(Math.max(0, proximity), 0.9) * 0.22})`;
+        context.lineWidth = 0.85;
         context.stroke();
       }
 
-      if (pointer && finePointer.matches && root.dataset.motion === "active") {
+      if (pointer && finePointer.matches && !reducedMotion.matches && root.dataset.motion === "active") {
         const halo = context.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, POINTER_RADIUS);
         halo.addColorStop(0, "rgba(255, 255, 255, 0.055)");
         halo.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -59,27 +68,71 @@ export function AmbientConstellation() {
       }
 
       for (const star of starStates) {
+        if (star.radius >= 1.05) {
+          context.beginPath();
+          context.arc(star.x, star.y, star.radius * 2.8, 0, Math.PI * 2);
+          context.fillStyle = `rgba(255, 255, 255, ${star.alpha * 0.13})`;
+          context.fill();
+        }
+
         context.beginPath();
         context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         context.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
         context.fill();
       }
+
+      for (const meteor of meteors) {
+        const state = meteorStateAtTime(meteor, viewportWidth, viewportHeight, seconds);
+        if (!state || state.alpha <= 0) continue;
+
+        const trail = context.createLinearGradient(state.tailX, state.tailY, state.headX, state.headY);
+        trail.addColorStop(0, "rgba(255, 255, 255, 0)");
+        trail.addColorStop(0.55, `rgba(255, 255, 255, ${state.alpha * 0.14})`);
+        trail.addColorStop(1, `rgba(255, 255, 255, ${state.alpha * 0.92})`);
+        context.save();
+        context.beginPath();
+        context.moveTo(state.tailX, state.tailY);
+        context.lineTo(state.headX, state.headY);
+        context.strokeStyle = trail;
+        context.lineCap = "round";
+        context.lineWidth = 1.25;
+        context.stroke();
+
+        const glow = context.createRadialGradient(state.headX, state.headY, 0, state.headX, state.headY, 9);
+        glow.addColorStop(0, `rgba(255, 255, 255, ${state.alpha * 0.62})`);
+        glow.addColorStop(0.2, `rgba(255, 255, 255, ${state.alpha * 0.2})`);
+        glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+        context.fillStyle = glow;
+        context.fillRect(state.headX - 9, state.headY - 9, 18, 18);
+
+        context.beginPath();
+        context.arc(state.headX, state.headY, 1.2, 0, Math.PI * 2);
+        context.fillStyle = `rgba(255, 255, 255, ${state.alpha})`;
+        context.fill();
+        context.restore();
+      }
     };
 
-    const isAnimationActive = () => root.dataset.motion !== "paused" && !document.hidden;
+    const isAnimationActive = () => (
+      root.dataset.motion !== "paused" && !reducedMotion.matches && !document.hidden
+    );
 
     const frame = (timestamp: number) => {
       if (!isAnimationActive()) return;
       animationFrame = window.requestAnimationFrame(frame);
+      if (loopStartedAt === null) loopStartedAt = timestamp;
       if (timestamp - previousFrame < FRAME_INTERVAL) return;
       previousFrame = timestamp;
-      draw(timestamp / 1000);
+      currentSeconds = (timestamp - loopStartedAt) / 1000;
+      draw(currentSeconds);
     };
 
     const syncAnimation = () => {
       window.cancelAnimationFrame(animationFrame);
       animationFrame = 0;
       previousFrame = 0;
+      loopStartedAt = null;
+      currentSeconds = 0;
       if (isAnimationActive()) {
         animationFrame = window.requestAnimationFrame(frame);
       } else {
@@ -91,17 +144,17 @@ export function AmbientConstellation() {
     const resize = () => {
       viewportWidth = window.innerWidth;
       viewportHeight = window.innerHeight;
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const pixelRatio = cappedCanvasPixelRatio(window.devicePixelRatio || 1);
       canvas.width = Math.round(viewportWidth * pixelRatio);
       canvas.height = Math.round(viewportHeight * pixelRatio);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       stars = createSeededStars(starCountForWidth(viewportWidth));
       connections = createStarConnections(stars, viewportWidth, viewportHeight, CONNECTION_DISTANCE, 2);
-      draw(0);
+      draw(isAnimationActive() ? currentSeconds : 0);
     };
 
     const onPointerMove = (event: PointerEvent) => {
-      if (!finePointer.matches || root.dataset.motion === "paused") return;
+      if (!finePointer.matches || reducedMotion.matches || root.dataset.motion === "paused") return;
       pointer = { x: event.clientX, y: event.clientY };
     };
 
@@ -119,6 +172,7 @@ export function AmbientConstellation() {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onPointerLeave);
     document.addEventListener("visibilitychange", syncAnimation);
+    reducedMotion.addEventListener("change", syncAnimation);
 
     resize();
     syncAnimation();
@@ -130,6 +184,7 @@ export function AmbientConstellation() {
       window.removeEventListener("pointermove", onPointerMove);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       document.removeEventListener("visibilitychange", syncAnimation);
+      reducedMotion.removeEventListener("change", syncAnimation);
     };
   }, []);
 

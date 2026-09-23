@@ -105,7 +105,7 @@ export default function HomePage() {
             <p className="eyebrow">Contact</p>
             <h2>Have a role or project to discuss?</h2>
             <p className="contact-copy">
-              Open a Gmail draft or email me directly at <a data-spectrum-option href={siteConfig.emailHref}>{siteConfig.email}</a>.
+              Send a note to <a data-spectrum-option href={siteConfig.emailHref}>{siteConfig.email}</a>. I&apos;ll reply as soon as I can.
             </p>
           </div>
           <div className="contact-actions">
@@ -117,9 +117,8 @@ export default function HomePage() {
               rel="noreferrer"
               target="_blank"
             >
-              Email Ajay in Gmail <span aria-hidden="true" className="action-arrow">↗</span>
+              Email Ajay <span aria-hidden="true" className="action-arrow">↗</span>
             </a>
-            <a className="button button-secondary" data-spectrum-option href={siteConfig.emailHref}>Use your email app</a>
           </div>
         </div>
       </section>
