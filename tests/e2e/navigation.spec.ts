@@ -109,6 +109,7 @@ test("all project case studies render", async ({ page }) => {
     await page.goto(`/projects/${slug}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText("What remains unproven")).toBeVisible();
+    await expect(page.getByText(/evidence checked/i)).toHaveCount(0);
   }
 });
 

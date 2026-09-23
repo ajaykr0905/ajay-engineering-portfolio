@@ -58,7 +58,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             repositoryUrl={project.repositoryUrl}
             status={project.status}
           />
-          <p>Evidence checked {project.lastVerified}</p>
         </div>
       </header>
 
