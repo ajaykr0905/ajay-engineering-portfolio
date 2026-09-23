@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: "Ajay",
   title: "Distributed Systems and AI Infrastructure Engineer",
   description:
-    "I build backend and AI projects that recruiters and engineers can inspect, run locally, and verify through tests.",
+    "I build failure-aware backend and AI systems that engineers can inspect, run, break, and verify through tests, traces, and honest limitations.",
   location: "Bengaluru, India",
   url: "https://ajaykr-engineering-portfolio.vercel.app",
   website: "https://ajaykr-engineering-portfolio.vercel.app",

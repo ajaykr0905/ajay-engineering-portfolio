@@ -2,17 +2,22 @@
 
 :root {
   color-scheme: dark;
-  --background: #07100d;
-  --surface: #0d1814;
-  --surface-strong: #13211c;
-  --border: #24352e;
-  --text: #f3f7f5;
-  --muted: #a7b7af;
-  --muted-strong: #ccd6d1;
-  --accent: #65e6a5;
-  --accent-strong: #35c983;
-  --accent-ink: #042519;
-  --warning: #f0c871;
+  --background: #030806;
+  --surface: #09130f;
+  --surface-strong: #0e1c16;
+  --surface-glass: rgb(9 19 15 / 0.86);
+  --border: #20372d;
+  --control-border: #526e62;
+  --text: #f4faf7;
+  --muted: #9db0a7;
+  --muted-strong: #cad8d1;
+  --accent: #55e6a5;
+  --accent-strong: #2fd68c;
+  --accent-ink: #031b12;
+  --transformer: #8a7cff;
+  --distributed: #50d9ff;
+  --voicemed: #ff7a8a;
+  --warning: #f4c86a;
   --shell: 1180px;
   --shadow: 0 24px 80px rgb(0 0 0 / 0.24);
   --font-sans: "Avenir Next", Avenir, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
@@ -21,16 +26,21 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --background: #f5f8f6;
+  --background: #f3f8f5;
   --surface: #ffffff;
-  --surface-strong: #edf4f0;
-  --border: #cad8d1;
-  --text: #102019;
-  --muted: #50645b;
+  --surface-strong: #eaf2ee;
+  --surface-glass: rgb(255 255 255 / 0.9);
+  --border: #c5d6cd;
+  --control-border: #6c8478;
+  --text: #0b1c14;
+  --muted: #496158;
   --muted-strong: #2c4037;
-  --accent: #087a4d;
-  --accent-strong: #05663f;
+  --accent: #067548;
+  --accent-strong: #045e3a;
   --accent-ink: #ffffff;
+  --transformer: #6554d9;
+  --distributed: #007a9c;
+  --voicemed: #bc4052;
   --warning: #765715;
   --shadow: 0 24px 80px rgb(28 52 41 / 0.1);
 }
@@ -48,7 +58,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at 82% 2%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 26rem),
+    radial-gradient(circle at 82% 2%, color-mix(in srgb, var(--transformer) 8%, transparent), transparent 28rem),
+    radial-gradient(circle at 12% 26%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 24rem),
     var(--background);
   color: var(--text);
   font-family: var(--font-sans);
@@ -103,7 +114,18 @@ button:focus-visible {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  background: var(--background);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.ambient-constellation {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.82;
+  pointer-events: none;
 }
 
 .header-inner {
@@ -112,6 +134,12 @@ button:focus-visible {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 2rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .brand {
@@ -161,14 +189,56 @@ button:focus-visible {
 }
 
 .icon-button {
-  width: 2.65rem;
-  height: 2.65rem;
-  border: 1px solid var(--border);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--control-border);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
   font-size: 1rem;
+}
+
+.icon-button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.motion-icon {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  display: block;
+  margin: auto;
+}
+
+.motion-icon-pause {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.motion-icon-pause span {
+  width: 0.16rem;
+  height: 0.72rem;
+  border-radius: 99px;
+  background: currentColor;
+}
+
+.motion-icon-play span:first-child {
+  position: absolute;
+  top: 0.1rem;
+  left: 0.25rem;
+  width: 0;
+  height: 0;
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+  border-left: 0.62rem solid currentColor;
+}
+
+.motion-icon-play span:last-child {
+  display: none;
 }
 
 .icon-button svg {
@@ -184,14 +254,56 @@ button:focus-visible {
 }
 
 .hero {
-  padding-block: clamp(5rem, 10vw, 8.5rem) 2.25rem;
+  padding-block: clamp(3.5rem, 7vw, 6.5rem) 2.25rem;
 }
 
 .hero-grid {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(19rem, 0.75fr);
-  align-items: end;
-  gap: clamp(3rem, 8vw, 7rem);
+  grid-template-columns: minmax(0, 1.08fr) minmax(23rem, 0.92fr);
+  align-items: center;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+[data-pointer-surface] {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  position: relative;
+  isolation: isolate;
+}
+
+[data-pointer-surface]::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    28rem circle at var(--pointer-x) var(--pointer-y),
+    color-mix(in srgb, var(--accent) 9%, transparent),
+    transparent 58%
+  );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+[data-pointer-surface][data-pointer-active]::before {
+  opacity: 1;
+}
+
+[data-pointer-surface] > * {
+  position: relative;
+  z-index: 1;
+}
+
+:root[data-motion="paused"] [data-pointer-surface]::before {
+  display: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
 }
 
 .availability {
@@ -217,7 +329,7 @@ button:focus-visible {
 .page-header h1,
 .project-header h1,
 .not-found h1 {
-  max-width: 13ch;
+  max-width: 11ch;
   margin: 0;
   font-size: clamp(3rem, 7.6vw, 7.3rem);
   line-height: 0.94;
@@ -231,6 +343,335 @@ button:focus-visible {
   color: var(--muted);
   font-size: clamp(1.1rem, 1.8vw, 1.4rem);
   line-height: 1.65;
+}
+
+.hero-visual {
+  position: relative;
+  width: min(100%, 34rem);
+  justify-self: end;
+  padding: 1.1rem 0 4.5rem 2rem;
+}
+
+[data-visual-key="transformer"] {
+  --project-accent: var(--transformer);
+}
+
+[data-visual-key="distributed"] {
+  --project-accent: var(--distributed);
+}
+
+[data-visual-key="voicemed"] {
+  --project-accent: var(--voicemed);
+}
+
+.constellation-glyph {
+  --glyph-size: 4.75rem;
+  position: relative;
+  width: var(--glyph-size);
+  aspect-ratio: 1;
+  display: block;
+  flex: 0 0 auto;
+  color: var(--project-accent);
+  filter: drop-shadow(0 0 0.8rem color-mix(in srgb, var(--project-accent) 35%, transparent));
+}
+
+.constellation-glyph-small {
+  --glyph-size: 3.75rem;
+}
+
+.constellation-glyph-large {
+  --glyph-size: 6.5rem;
+}
+
+.glyph-orbit,
+.glyph-core,
+.glyph-node,
+.glyph-edge {
+  position: absolute;
+  display: block;
+}
+
+.glyph-orbit {
+  border: 1px solid color-mix(in srgb, currentColor 58%, transparent);
+  border-radius: 50%;
+}
+
+.glyph-orbit-outer {
+  inset: 11%;
+}
+
+.glyph-orbit-inner {
+  inset: 29%;
+  border-style: dashed;
+}
+
+.glyph-core,
+.glyph-node {
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0.65rem currentColor;
+}
+
+.glyph-core {
+  inset: 43%;
+}
+
+.constellation-glyph[data-visual-key="transformer"] .glyph-node {
+  width: 9%;
+  aspect-ratio: 1;
+}
+
+.constellation-glyph[data-visual-key="transformer"] .glyph-node-one {
+  top: 8%;
+  left: 47%;
+}
+
+.constellation-glyph[data-visual-key="transformer"] .glyph-node-two {
+  top: 64%;
+  left: 13%;
+}
+
+.constellation-glyph[data-visual-key="transformer"] .glyph-node-three {
+  top: 69%;
+  right: 12%;
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node {
+  z-index: 2;
+  width: 13%;
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, currentColor 75%, white);
+  background: var(--surface);
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node-one {
+  top: 8%;
+  left: 43%;
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node-two {
+  top: 38%;
+  right: 8%;
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node-three {
+  right: 24%;
+  bottom: 8%;
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node-four {
+  bottom: 14%;
+  left: 13%;
+}
+
+.constellation-glyph[data-visual-key="distributed"] .glyph-node-five {
+  top: 36%;
+  left: 8%;
+}
+
+.glyph-edge {
+  z-index: 1;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 64%, transparent);
+  transform-origin: left center;
+}
+
+.glyph-edge-one {
+  width: 49%;
+  top: 18%;
+  left: 49%;
+  rotate: 35deg;
+}
+
+.glyph-edge-two {
+  width: 45%;
+  top: 48%;
+  right: 9%;
+  rotate: 104deg;
+}
+
+.glyph-edge-three {
+  width: 52%;
+  right: 23%;
+  bottom: 14%;
+  rotate: -172deg;
+}
+
+.glyph-edge-four {
+  width: 48%;
+  bottom: 22%;
+  left: 18%;
+  rotate: -105deg;
+}
+
+.glyph-edge-five {
+  width: 42%;
+  top: 44%;
+  left: 16%;
+  rotate: -39deg;
+}
+
+.glyph-wave {
+  position: absolute;
+  inset: 13% 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.glyph-wave::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 42%, transparent);
+  content: "";
+}
+
+.glyph-wave span {
+  position: relative;
+  z-index: 1;
+  width: 7%;
+  min-height: 12%;
+  border-radius: 99px;
+  background: currentColor;
+  box-shadow: 0 0 0.5rem color-mix(in srgb, currentColor 58%, transparent);
+}
+
+.glyph-wave span:nth-child(1),
+.glyph-wave span:nth-child(7) {
+  height: 22%;
+}
+
+.glyph-wave span:nth-child(2),
+.glyph-wave span:nth-child(6) {
+  height: 48%;
+}
+
+.glyph-wave span:nth-child(3),
+.glyph-wave span:nth-child(5) {
+  height: 76%;
+}
+
+.glyph-wave span:nth-child(4) {
+  height: 100%;
+}
+
+.hero-constellations {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.hero-constellation-link {
+  position: absolute;
+  min-width: 7.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--project-accent) 62%, var(--control-border));
+  border-radius: 999px;
+  background: var(--surface-glass);
+  padding: 0.3rem 0.7rem 0.3rem 0.3rem;
+  color: var(--muted-strong);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.24);
+  font: 600 0.64rem/1.25 var(--font-mono), monospace;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.hero-constellation-link:hover {
+  border-color: var(--project-accent);
+  transform: translateY(-2px);
+}
+
+.hero-constellation-link .constellation-glyph {
+  --glyph-size: 2.5rem;
+}
+
+.hero-constellation-link[data-visual-key="transformer"] {
+  top: 0;
+  right: -0.5rem;
+}
+
+.hero-constellation-link[data-visual-key="distributed"] {
+  top: 38%;
+  right: -0.5rem;
+}
+
+.hero-constellation-link[data-visual-key="voicemed"] {
+  right: -0.5rem;
+  bottom: 4.5rem;
+}
+
+.hero-portal {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  border-radius: 1.8rem;
+  background: #020705;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.04) inset,
+    0 2rem 7rem rgb(0 0 0 / 0.52),
+    0 0 4rem color-mix(in srgb, var(--transformer) 14%, transparent);
+}
+
+.hero-portal::before {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, transparent 58%, rgb(1 7 5 / 0.72) 100%),
+    radial-gradient(circle at 76% 15%, color-mix(in srgb, var(--transformer) 16%, transparent), transparent 32%);
+  content: "";
+  pointer-events: none;
+}
+
+.hero-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.hero-portal-orbit {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-portal-orbit::after {
+  position: absolute;
+  top: -0.2rem;
+  left: 50%;
+  width: 0.4rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--distributed);
+  box-shadow: 0 0 0.8rem var(--distributed);
+  content: "";
+}
+
+.hero-portal-orbit-one {
+  width: 72%;
+  aspect-ratio: 1;
+  top: 7%;
+  left: 14%;
+}
+
+.hero-portal-orbit-two {
+  width: 92%;
+  aspect-ratio: 1;
+  top: 18%;
+  left: -22%;
+  border-color: color-mix(in srgb, var(--distributed) 34%, transparent);
 }
 
 .hero-actions,
@@ -269,7 +710,7 @@ button:focus-visible {
 }
 
 .button-secondary {
-  border-color: var(--border);
+  border-color: var(--control-border);
   background: var(--surface);
   color: var(--text);
 }
@@ -279,11 +720,18 @@ button:focus-visible {
 }
 
 .hero-proof {
+  position: absolute;
+  z-index: 4;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  width: min(23rem, 76%);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
-  padding: 1.5rem;
+  background: var(--surface-glass);
+  padding: 1.25rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(20px) saturate(125%);
 }
 
 .eyebrow {
@@ -294,23 +742,16 @@ button:focus-visible {
   letter-spacing: 0.11em;
 }
 
-.proof-statement {
-  margin: 0;
-  font-size: 1.3rem;
-  line-height: 1.45;
-  letter-spacing: -0.025em;
-}
-
 .hero-proof dl {
-  margin: 1.5rem 0 0;
+  margin: 0.5rem 0 0;
 }
 
 .hero-proof dl div {
   display: grid;
-  grid-template-columns: 6.5rem 1fr;
+  grid-template-columns: 6.2rem 1fr;
   gap: 1rem;
   border-top: 1px solid var(--border);
-  padding-block: 0.95rem;
+  padding-block: 0.72rem;
 }
 
 .hero-proof dt {
@@ -322,6 +763,12 @@ button:focus-visible {
   margin: 0;
   color: var(--muted-strong);
   font-size: 0.9rem;
+}
+
+main,
+.site-footer {
+  position: relative;
+  z-index: 1;
 }
 
 .stack-strip {
@@ -391,6 +838,33 @@ button:focus-visible {
   gap: 1.5rem;
   border-bottom: 1px solid var(--border);
   padding-block: 2.2rem;
+}
+
+.project-card-content {
+  position: relative;
+  padding-right: 5.25rem;
+}
+
+.project-card-glyph {
+  position: absolute;
+  top: 3.65rem;
+  right: 0;
+}
+
+.project-card[data-visual-key] .eyebrow,
+.project-card[data-visual-key] .text-link,
+.project-page[data-visual-key] .eyebrow,
+.project-page[data-visual-key] .diagram-number,
+.project-page[data-visual-key] .metric-value {
+  color: var(--project-accent);
+}
+
+.project-card[data-visual-key] .project-focus {
+  border-color: var(--project-accent);
+}
+
+.project-card[data-visual-key] h3 a:hover {
+  color: var(--project-accent);
 }
 
 .project-index,
@@ -480,6 +954,10 @@ button:focus-visible {
   padding-inline: 0.8rem;
   white-space: nowrap;
   transition: background 160ms ease, transform 160ms ease;
+}
+
+.status.status-link {
+  border-color: color-mix(in srgb, currentColor 62%, var(--control-border));
 }
 
 .status-link:hover {
@@ -662,8 +1140,21 @@ button:focus-visible {
 }
 
 .page-header {
+  position: relative;
   max-width: 60rem;
   margin-bottom: 4rem;
+  padding-left: 1.25rem;
+}
+
+.page-header::before {
+  position: absolute;
+  top: 0.2rem;
+  bottom: 0.2rem;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--distributed), var(--transformer), transparent);
+  content: "";
+  box-shadow: 0 0 1.2rem color-mix(in srgb, var(--accent) 42%, transparent);
 }
 
 .page-header h1,
@@ -783,6 +1274,10 @@ button:focus-visible {
   gap: 0.8rem;
   color: var(--muted);
   font: 500 0.75rem/1.4 var(--font-mono), monospace;
+}
+
+.project-header-meta .constellation-glyph {
+  margin-bottom: 0.5rem;
 }
 
 .project-header-meta p {
@@ -966,6 +1461,69 @@ button:focus-visible {
   margin-top: 1.5rem;
 }
 
+@keyframes astral-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glyph-breathe {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes signal-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+:root[data-motion="active"] .hero-portal-orbit-one {
+  animation: astral-orbit 28s linear infinite;
+}
+
+:root[data-motion="active"] .hero-portal-orbit-two {
+  animation: astral-orbit 38s linear infinite reverse;
+}
+
+:root[data-motion="active"] .constellation-glyph[data-visual-key="transformer"] .glyph-orbit-inner {
+  animation: astral-orbit 16s linear infinite;
+}
+
+:root[data-motion="active"] .constellation-glyph[data-visual-key="distributed"] .glyph-node {
+  animation: glyph-breathe 3.6s ease-in-out infinite;
+}
+
+:root[data-motion="active"] .constellation-glyph[data-visual-key="distributed"] .glyph-node:nth-of-type(2n) {
+  animation-delay: -1.8s;
+}
+
+:root[data-motion="active"] .constellation-glyph[data-visual-key="voicemed"] .glyph-wave span {
+  animation: signal-pulse 2.8s ease-in-out infinite;
+}
+
+:root[data-motion="active"] .constellation-glyph[data-visual-key="voicemed"] .glyph-wave span:nth-child(2n) {
+  animation-delay: -1.4s;
+}
+
+:root[data-motion="paused"] .hero-portal-orbit,
+:root[data-motion="paused"] .constellation-glyph * {
+  animation: none !important;
+}
+
 @media (max-width: 900px) {
   .hero-grid,
   .section-heading,
@@ -978,7 +1536,16 @@ button:focus-visible {
   }
 
   .hero-proof {
-    max-width: 38rem;
+    max-width: none;
+  }
+
+  .hero-visual {
+    width: min(100%, 38rem);
+    justify-self: center;
+  }
+
+  .hero-constellation-link[data-visual-key] {
+    right: -0.5rem;
   }
 
   .stack-strip {
@@ -1039,6 +1606,50 @@ button:focus-visible {
 
   .hero {
     padding-top: 4rem;
+  }
+
+  .hero-visual {
+    padding: 0 0 1rem;
+  }
+
+  .hero-proof {
+    position: relative;
+    width: calc(100% - 1.5rem);
+    margin: -2.75rem auto 0;
+  }
+
+
+  .hero-constellations {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .hero-constellation-link[data-visual-key] {
+    position: relative;
+    inset: auto;
+    min-width: 0;
+    justify-content: center;
+    padding-right: 0.5rem;
+  }
+
+  .hero-constellation-link span:last-child {
+    display: none;
+  }
+
+  .project-card-content {
+    padding-right: 0;
+  }
+
+  .project-card-glyph {
+    position: relative;
+    top: auto;
+    right: auto;
+    float: right;
+    margin: 0.5rem 0 0.5rem 1rem;
   }
 
   .hero h1,

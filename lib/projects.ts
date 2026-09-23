@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum(["Shipped", "Runnable Lab", "Building"]);
+export const projectVisualKeySchema = z.enum(["transformer", "distributed", "voicemed"]);
+export type ProjectVisualKey = z.infer<typeof projectVisualKeySchema>;
 
 const metricSchema = z.object({
   value: z.string().min(1),
@@ -13,6 +15,7 @@ export const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   title: z.string().min(1),
   eyebrow: z.string().min(1),
+  visualKey: projectVisualKeySchema,
   summary: z.string().min(1),
   currentFocus: z.string().min(1),
   status: projectStatusSchema,
@@ -44,6 +47,7 @@ const projectInput = [
     slug: "fault-tolerant-transformer-lab",
     title: "Fault-Tolerant Transformer Lab",
     eyebrow: "Model training reliability",
+    visualKey: "transformer",
     summary:
       "A small PyTorch lab that saves model training progress and checks that a restarted run reaches the same verified state. It runs on CPU today; GPU and serving work are still planned.",
     currentFocus:
@@ -123,6 +127,7 @@ const projectInput = [
     slug: "distributed-scale-validation-platform",
     title: "Distributed Scale Validation Lab",
     eyebrow: "Reliable background jobs",
+    visualKey: "distributed",
     summary:
       "A Go lab that tests what happens when background jobs are duplicated, retried, or fail. The local demo uses memory today; RabbitMQ and PostgreSQL are covered by integration tests.",
     currentFocus:
@@ -195,6 +200,7 @@ const projectInput = [
     slug: "voicemed-ai",
     title: "VoiceMed AI",
     eyebrow: "Voice-to-notes AI prototype",
+    visualKey: "voicemed",
     summary:
       "A synthetic-data prototype that turns speech into a structured draft and blocks export until a person confirms it. It does not diagnose or prove clinical accuracy.",
     currentFocus:

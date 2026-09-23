@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import { ConstellationGlyph } from "@/components/constellation-glyph";
 import { ProjectCard } from "@/components/project-card";
 import { SectionHeading } from "@/components/section-heading";
 import { experience } from "@/lib/experience";
@@ -24,8 +26,8 @@ export default function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <section className="hero shell">
-        <div className="hero-grid">
-          <div>
+        <div className="hero-grid" data-pointer-surface>
+          <div className="hero-content">
             <p className="availability"><span aria-hidden="true" /> Bengaluru · Open to backend, platform, and AI engineering roles</p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
@@ -34,15 +36,43 @@ export default function HomePage() {
               <a className="button button-secondary" href={siteConfig.resumePath} download>Download résumé</a>
             </div>
           </div>
-          <aside className="hero-proof" aria-label="Engineering focus">
-            <p className="eyebrow">How I work</p>
-            <p className="proof-statement">Every project links to working code, tests, and honest limitations.</p>
-            <dl>
-              <div><dt>Building</dt><dd>Backend and distributed systems</dd></div>
-              <div><dt>Learning</dt><dd>Training and inference systems</dd></div>
-              <div><dt>Rule</dt><dd>Working evidence before claims</dd></div>
-            </dl>
-          </aside>
+          <div className="hero-visual">
+            <div className="hero-portal" aria-hidden="true">
+              <span className="hero-portal-orbit hero-portal-orbit-one" />
+              <span className="hero-portal-orbit hero-portal-orbit-two" />
+              <Image
+                alt=""
+                className="hero-art"
+                height={1402}
+                priority
+                sizes="(max-width: 900px) 88vw, 34rem"
+                src="/images/astral-engineer.avif"
+                width={1122}
+              />
+            </div>
+            <nav className="hero-constellations" aria-label="Featured project constellations">
+              {featuredProjects.map((project) => (
+                <Link
+                  aria-label={project.title}
+                  className="hero-constellation-link"
+                  data-visual-key={project.visualKey}
+                  href={`/projects/${project.slug}`}
+                  key={project.slug}
+                >
+                  <ConstellationGlyph size="medium" visualKey={project.visualKey} />
+                  <span>{project.title.replace("Fault-Tolerant ", "").replace("Distributed Scale Validation Lab", "Distributed Lab")}</span>
+                </Link>
+              ))}
+            </nav>
+            <aside className="hero-proof" aria-label="Evidence before claims">
+              <p className="eyebrow">Evidence before claims</p>
+              <dl>
+                <div><dt>Recoverable</dt><dd>Failure injection and deterministic restart</dd></div>
+                <div><dt>Inspectable</dt><dd>Tests, traces, and versioned artifacts</dd></div>
+                <div><dt>Honest</dt><dd>Proven now versus planned next</dd></div>
+              </dl>
+            </aside>
+          </div>
         </div>
         <ul className="stack-strip" aria-label="Core technology stack">
           {stack.map((technology) => <li key={technology}>{technology}</li>)}
