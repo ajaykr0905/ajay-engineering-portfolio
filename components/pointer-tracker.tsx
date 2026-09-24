@@ -28,13 +28,16 @@ export function PointerTracker() {
         return;
       }
 
+      // Read layout before changing attributes or custom properties so pointer
+      // updates do not force the browser to synchronously recalculate layout.
+      const bounds = surface.getBoundingClientRect();
+
       if (activeSurface !== surface) {
         clearSurface();
         activeSurface = surface;
         activeSurface.dataset.pointerActive = "true";
       }
 
-      const bounds = surface.getBoundingClientRect();
       surface.style.setProperty("--pointer-x", `${event.clientX - bounds.left}px`);
       surface.style.setProperty("--pointer-y", `${event.clientY - bounds.top}px`);
     };
