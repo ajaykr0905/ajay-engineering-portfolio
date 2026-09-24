@@ -8,6 +8,9 @@
         "http://localhost:3000/experience",
         "http://localhost:3000/projects/fault-tolerant-transformer-lab"
       ],
+      "settings": {
+        "chromeFlags": "--force-prefers-reduced-motion=reduce"
+      },
       "numberOfRuns": 3
     },
     "assert": {
