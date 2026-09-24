@@ -18,6 +18,7 @@ Typed project evidence ─┐
 Experience summaries ───┼─> Next.js static routes ─> Vercel production
 MDX engineering notes ──┘             │
                                       ├─> metadata, sitemap, JSON-LD
+                                      ├─> anonymous page-view analytics
                                       └─> CI, browser tests, Lighthouse
 ```
 
@@ -53,6 +54,13 @@ The `main` branch deploys to the public production URL above. Preview deployment
 may remain protected, but the production site must stay accessible without a
 Vercel login. The [Vercel release runbook](docs/vercel-release.md) documents the
 verified routes and recovery checks.
+
+## Analytics
+
+The root layout includes Vercel Web Analytics for aggregate page views across all
+routes. It does not add a custom visitor database, user accounts, or identity
+tracking. Analytics must also be enabled for the Vercel project before production
+traffic appears in the dashboard.
 
 ## Public-safety boundary
 

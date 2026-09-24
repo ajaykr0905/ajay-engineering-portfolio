@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { AmbientConstellation } from "@/components/ambient-constellation";
 import { PointerTracker } from "@/components/pointer-tracker";
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>{children}</main>
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
