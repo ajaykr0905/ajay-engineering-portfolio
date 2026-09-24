@@ -78,6 +78,8 @@ const preferenceBoot = `
   root.dataset.motion = reducedMotion || motionPreference === 'paused' ? 'paused' : 'active';
 `;
 
+const isVercelDeployment = process.env.VERCEL === "1";
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html className={interTight.variable} lang="en" suppressHydrationWarning>
@@ -89,7 +91,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>{children}</main>
         <SiteFooter />
-        <Analytics />
+        {isVercelDeployment ? <Analytics /> : null}
       </body>
     </html>
   );

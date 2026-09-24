@@ -58,7 +58,8 @@ verified routes and recovery checks.
 ## Analytics
 
 The root layout includes Vercel Web Analytics for aggregate page views across all
-routes. It does not add a custom visitor database, user accounts, or identity
+routes when the site runs on Vercel. Local and CI builds do not load the collector.
+The integration does not add a custom visitor database, user accounts, or identity
 tracking. Analytics must also be enabled for the Vercel project before production
 traffic appears in the dashboard.
 

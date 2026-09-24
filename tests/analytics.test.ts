@@ -10,7 +10,11 @@ describe("page-view analytics", () => {
     expect(rootLayout.match(/<Analytics\s*\/>/g)).toHaveLength(1);
   });
 
-  it("renders analytics after the shared page chrome", () => {
-    expect(rootLayout.indexOf("<SiteFooter />")).toBeLessThan(rootLayout.indexOf("<Analytics />"));
+  it("renders analytics after the shared page chrome only on Vercel", () => {
+    expect(rootLayout).toContain('const isVercelDeployment = process.env.VERCEL === "1";');
+    expect(rootLayout).toContain("{isVercelDeployment ? <Analytics /> : null}");
+    expect(rootLayout.indexOf("<SiteFooter />")).toBeLessThan(
+      rootLayout.indexOf("{isVercelDeployment ? <Analytics /> : null}"),
+    );
   });
 });
