@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { AmbientConstellation } from "@/components/ambient-constellation";
 import { PointerTracker } from "@/components/pointer-tracker";
@@ -77,6 +78,8 @@ const preferenceBoot = `
   root.dataset.motion = reducedMotion || motionPreference === 'paused' ? 'paused' : 'active';
 `;
 
+const isVercelDeployment = process.env.VERCEL === "1";
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html className={interTight.variable} lang="en" suppressHydrationWarning>
@@ -88,6 +91,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>{children}</main>
         <SiteFooter />
+        {isVercelDeployment ? <Analytics /> : null}
       </body>
     </html>
   );

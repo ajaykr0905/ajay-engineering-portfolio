@@ -19,6 +19,9 @@ redirects signed-out visitors to Vercel login.
 
 ## Public release verification
 
+- Confirm Web Analytics is enabled for the Vercel project.
+- Open two distinct public routes and confirm page-view data begins appearing in
+  the Vercel Analytics dashboard.
 - Open the production URL in a signed-out private window.
 - Confirm `/`, `/experience`, `/writing`, `/resume`, and all four project pages open without a login.
 - Download the résumé and verify the PDF opens.
