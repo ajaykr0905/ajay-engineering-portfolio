@@ -94,10 +94,14 @@ export const projectSchema = z.object({
 
 export type Project = z.infer<typeof projectSchema>;
 
-const transformerCommit = "41dcd0ea315515f63ea764225867ff569bc50316";
 const transformerRepository = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab";
-const transformerCommitUrl = `${transformerRepository}/commit/${transformerCommit}`;
-const transformerCiUrl = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/35731966039/job/106759520958";
+const transformerTuningCommit = "41dcd0ea315515f63ea764225867ff569bc50316";
+const transformerTuningCommitUrl = `${transformerRepository}/commit/${transformerTuningCommit}`;
+const transformerTuningCiUrl = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/35731966039/job/106759520958";
+const transformerRecoveryCommit = "e6a7d44a7f60b5f87e60e28efe6232070b43954e";
+const transformerRecoveryCommitUrl = `${transformerRepository}/commit/${transformerRecoveryCommit}`;
+const transformerRecoveryCiUrl = "https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/37114067040/job/111177338320";
+const transformerRecoveryArtifacts = `${transformerRepository}/tree/${transformerRecoveryCommit}/artifacts/peps-process-kill-2026-10-03`;
 
 const distributedCommit = "e0a1a197265869a15043df462d1f230221660ba5";
 const distributedRepository = "https://github.com/ajaykr0905/distributed-scale-validation-lab";
@@ -123,10 +127,10 @@ const projectInput = [
     eyebrow: "Model training reliability",
     visualKey: "transformer",
     summary:
-      "A small PyTorch lab that saves model training progress and checks that a restarted run reaches the same verified state. It runs on CPU today; GPU and serving work are still planned.",
+      "A reproducible CPU transformer lab that restores durable checkpoints after real process kills. Four pinned public-data recovery drills compare independently spawned workers with an uninterrupted control; GPU and serving work remain planned.",
     currentFocus:
-      "A real stop-and-restart recovery demo, stronger checkpoint validation, and evidence-rich artifacts.",
-    status: "Building",
+      "Extend the verified process-kill recovery path to asynchronous kill timing, then measure controlled model-quality ablations before adding GPU or serving claims.",
+    status: "Runnable Lab",
     featured: true,
     roleAlignment: ["AI infrastructure", "ML systems", "Research engineering"],
     stack: ["PyTorch", "Python", "pytest", "Docker", "GitHub Actions"],
@@ -150,9 +154,14 @@ const projectInput = [
           "Experiment manifests hold the dataset, seed, model, and environment fixed while changing one declared variable.",
       },
       {
-        title: "Inspectable CPU evidence",
+        title: "Independent recovery workers",
         detail:
-          "The public portfolio links pinned CPU tests and versioned artifacts. Training is locally reproducible at the documented scale; serving and GPU work remain explicitly planned.",
+          "A parent pauses a worker at a known uncommitted step-two boundary and sends SIGKILL. Separate spawned control, replay, and completion processes prevent accidental inheritance of model, optimizer, or RNG state.",
+      },
+      {
+        title: "Public-data proof, network-free CI",
+        detail:
+          "Local evidence uses the pinned public PEP corpus. CI exercises the same verifier with an independently written CC0 fixture, so it checks recovery semantics without downloading or claiming to rerun the corpus proof.",
       },
     ],
     tradeoffs: [
@@ -160,36 +169,42 @@ const projectInput = [
       "Pinned test and artifact replay is reliable and free, but it is not live training, serving, or a GPU endpoint.",
     ],
     failureModes: [
-      "A controlled stop after checkpoint publication followed by restart.",
-      "Checkpoint or configuration mismatch during restart.",
+      "SIGKILL at before-forward, after-backward, after-optimizer, and during-checkpoint-write boundaries, with durable step one restored after attempted step two.",
+      "An abandoned checkpoint staging file after mid-write termination; the next successful save removes it without treating it as a committed generation.",
+      "Checkpoint integrity or configuration, dataset, tokenizer, and run-contract mismatch during restart.",
+      "Worker startup/completion deadlines and error cleanup, without leaving a child process running.",
       "Causal-mask or gradient regressions caught by focused tests.",
-      "Corrupt, truncated, and mid-write crash recovery remain known untested boundaries.",
     ],
     verification: [
       "Finite-difference and framework gradient checks.",
       "Repeatable CPU smoke training in CI.",
-      "Checkpoint restart equality checks at a declared step boundary.",
-      "Versioned experiment manifests and machine-readable result artifacts.",
+      "Four actual parent-controlled SIGKILL drills on pinned public PEP data: six steps, 384 input tokens, and 12 sampled windows per control/recovered run.",
+      "Sixteen verification checks require exact model and optimizer tensors, RNG state, loss/batch/sample histories, cursor, counters, logits, checkpoint state, and fingerprints, plus staging cleanup.",
+      "Network-free CI uses the CC0 fixture for all four kill boundaries, deadline cleanup, dataset drift rejection, and CLI behavior; it is separate from the local public-corpus reports.",
     ],
     limitations: [
       "No public multi-GPU result is claimed yet.",
+      "The tiny CPU proof consumes 12 windows from 12 documents, not every document in the 536-document training split or 656-document manifest.",
+      "SIGKILL is sent while the worker is paused at a known boundary; arbitrary asynchronous kill timing remains unverified.",
+      "The OS and filesystem stay alive. This is not a power-loss durability proof, a model-quality result, distributed training, or production-readiness evidence.",
+      "Local startup, restore, replay, and IPC timings are not throughput benchmarks or recovery SLOs.",
       "The public demo is an artifact explorer, not an always-on inference service.",
     ],
     metrics: [
       {
-        value: "9 / 9",
-        label: "CPU verification tests passing",
-        method: "Pytest suite covering contracts, causal isolation, autograd gradients, checkpoint restart equality, configuration drift rejection, and LoRA behavior.",
+        value: "4 / 4",
+        label: "SIGKILL boundaries recovered on public data",
+        method: "Kill the worker at each declared step-two boundary, restore durable step one, replay the failed batch, and finish the six-step pinned PEP run. Each report records exit code -9, zero durable committed steps lost, and all 16 exact verification checks passing.",
         evidence: {
-          sourceLabel: "Pinned test suite",
-          sourceUrl: `${transformerRepository}/tree/${transformerCommit}/tests`,
-          commitSha: transformerCommit,
-          commitUrl: transformerCommitUrl,
-          command: "pytest -q",
-          ciLabel: "Passing deterministic CPU verification job",
-          ciUrl: transformerCiUrl,
-          environment: "GitHub Actions ubuntu-latest · Python 3.12 · CPU",
-          limitation: "Small synthetic CPU fixtures; no GPU, model-quality, throughput, or production claim.",
+          sourceLabel: "Four pinned public-data process-kill reports",
+          sourceUrl: transformerRecoveryArtifacts,
+          commitSha: transformerRecoveryCommit,
+          commitUrl: transformerRecoveryCommitUrl,
+          command: "for point in before-forward after-backward after-optimizer during-checkpoint-write; do uv run --frozen fttl-verify-process-recovery --config configs/peps-cpu.json --dataset-manifest .cache/fttl/peps-v1/manifest.json --failure-point \"$point\" --output \"artifacts/local-process-$point\"; done",
+          ciLabel: "Passing CPU verifier job · network-free CC0 fixture",
+          ciUrl: transformerRecoveryCiUrl,
+          environment: "Local deterministic CPU · pinned environment in each report; CI uses ubuntu-latest · Python 3.12 · CC0 fixture",
+          limitation: "Known paused boundaries in a tiny six-step CPU run; not arbitrary kill timing, power loss, GPU scale, model quality, or production readiness. CI does not rerun the public corpus.",
         },
       },
       {
@@ -198,12 +213,12 @@ const projectInput = [
         method: "The same initialized model, synthetic batches, seed, and step budget were used for full tuning and LoRA; 1,536 LoRA parameters were trainable versus 28,032 in full tuning. This is a parameter-efficiency result, not a quality claim.",
         evidence: {
           sourceLabel: "Pinned comparison artifact",
-          sourceUrl: `${transformerRepository}/blob/${transformerCommit}/artifacts/tuning-comparison/result.json`,
-          commitSha: transformerCommit,
-          commitUrl: transformerCommitUrl,
+          sourceUrl: `${transformerRepository}/blob/${transformerTuningCommit}/artifacts/tuning-comparison/result.json`,
+          commitSha: transformerTuningCommit,
+          commitUrl: transformerTuningCommitUrl,
           command: "fttl-compare-tuning --config configs/smoke.json --output artifacts/tuning-comparison/result.json",
           ciLabel: "Passing deterministic CPU verification job",
-          ciUrl: transformerCiUrl,
+          ciUrl: transformerTuningCiUrl,
           environment: "Local CPU artifact · Python 3.12.14 · PyTorch 2.14.0; command also runs in CI",
           limitation: "Parameter-efficiency observation on a randomly initialized tiny model and synthetic tokens; not a quality comparison.",
         },
@@ -211,17 +226,17 @@ const projectInput = [
       {
         value: "rtol 0 / atol 0",
         label: "resumed model-state equality",
-        method: "A four-step uninterrupted CPU run is compared with a run resumed from the step-two checkpoint; every model-state tensor must match with zero relative and absolute tolerance.",
+        method: "For each public-data kill drill, compare the uninterrupted and recovered six-step model tensors exactly with torch.equal. The same reports also require exact optimizer/RNG state, loss and sample histories, cursor, counters, logits, checkpoint state, and fingerprint equality.",
         evidence: {
-          sourceLabel: "Pinned restart-equality test",
-          sourceUrl: `${transformerRepository}/blob/${transformerCommit}/tests/test_recovery.py#L23-L36`,
-          commitSha: transformerCommit,
-          commitUrl: transformerCommitUrl,
-          command: "pytest -q tests/test_recovery.py::test_checkpoint_restart_matches_uninterrupted_training",
-          ciLabel: "Passing deterministic CPU verification job",
-          ciUrl: transformerCiUrl,
-          environment: "GitHub Actions ubuntu-latest · Python 3.12 · deterministic CPU fixture",
-          limitation: "Proves model-tensor equality for one tiny CPU fixture; it does not prove process-kill durability, GPU recovery, or distributed restart.",
+          sourceLabel: "Pinned exact-state process-kill report",
+          sourceUrl: `${transformerRepository}/blob/${transformerRecoveryCommit}/artifacts/peps-process-kill-2026-10-03/after-optimizer/process-recovery-report.json`,
+          commitSha: transformerRecoveryCommit,
+          commitUrl: transformerRecoveryCommitUrl,
+          command: "uv run --frozen fttl-verify-process-recovery --config configs/peps-cpu.json --dataset-manifest .cache/fttl/peps-v1/manifest.json --failure-point after-optimizer --output artifacts/local-process-after-optimizer",
+          ciLabel: "Passing CPU verifier job · network-free CC0 fixture",
+          ciUrl: transformerRecoveryCiUrl,
+          environment: "Local deterministic CPU · pinned public PEP corpus · six steps; CI independently checks CC0 fixture recovery",
+          limitation: "Exact-state equality for this tiny deterministic CPU configuration and known failure boundary; not a model-quality, GPU, distributed restart, or recovery SLO claim.",
         },
       },
     ],
@@ -229,35 +244,40 @@ const projectInput = [
       {
         id: "checkpoint-recovery",
         label: "Checkpoint recovery",
-        outcome: "The resumed model reaches the same four-step state as the uninterrupted run with rtol=0 and atol=0.",
-        sourceLabel: "Inspect the pinned recovery test",
-        sourceUrl: `${transformerRepository}/blob/${transformerCommit}/tests/test_recovery.py#L23-L36`,
-        limitation: "A deterministic replay of a tiny CPU unit test—not a live training process or GPU failure drill.",
+        outcome: "After a real step-two SIGKILL, recovery from durable step one reaches the same six-step state as an independent control, with all 16 exact checks passing.",
+        sourceLabel: "Inspect the pinned public-data SIGKILL report",
+        sourceUrl: `${transformerRepository}/blob/${transformerRecoveryCommit}/artifacts/peps-process-kill-2026-10-03/after-optimizer/process-recovery-report.json`,
+        limitation: "Replay of a pinned local CPU report, not live training. The killed worker pauses at a known boundary; this does not prove arbitrary kill timing, power-loss durability, GPU recovery, or distributed training.",
         steps: [
           {
             title: "Run the control path",
-            detail: "Train the declared tiny configuration for four uninterrupted deterministic CPU steps.",
+            detail: "An independently spawned control trains the tiny configuration for six deterministic CPU steps on pinned PEP data: 384 input tokens across 12 sampled windows.",
             state: "input",
           },
           {
-            title: "Stop at step two",
-            detail: "Run the same configuration to step two and save the model, optimizer, configuration fingerprint, counters, and RNG state.",
+            title: "Kill an uncommitted step",
+            detail: "A second worker durably saves step one, pauses after the step-two optimizer update, and is killed by the parent with SIGKILL; the report requires exit code -9.",
             state: "failure",
           },
           {
-            title: "Resume the same run",
-            detail: "Load the step-two checkpoint and finish the remaining two steps with the same deterministic batches.",
+            title: "Restore and replay the failed batch",
+            detail: "A fresh replay process loads durable generation one, restores model/optimizer/RNG/cursor state, consumes the identical failed batch and sample IDs, and durably commits step two.",
             state: "recovery",
           },
           {
-            title: "Compare every model tensor",
-            detail: "Require equal step and token counts, then compare the resumed and uninterrupted state dictionaries with rtol=0 and atol=0.",
+            title: "Finish in another fresh process",
+            detail: "A fourth spawned worker loads the replayed checkpoint and completes the remaining four steps without inheriting in-memory training state.",
+            state: "processing",
+          },
+          {
+            title: "Require exact final-state equality",
+            detail: "All 16 report checks must pass, including every model/optimizer tensor, RNG state, histories, cursor, counters, logits, checkpoint state, fingerprints, and staging cleanup.",
             state: "verified",
           },
         ],
       },
     ],
-    lastVerified: "2026-09-22",
+    lastVerified: "2026-10-03",
   },
   {
     slug: "distributed-scale-validation-platform",

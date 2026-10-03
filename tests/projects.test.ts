@@ -59,10 +59,14 @@ describe("project evidence model", () => {
     }
   });
 
-  it("does not label unfinished flagship work as shipped", () => {
+  it("labels verified CPU recovery as a runnable lab, not shipped infrastructure", () => {
     const flagship = projects.find((project) => project.slug === "fault-tolerant-transformer-lab");
-    expect(flagship?.status).toBe("Building");
+    expect(flagship?.status).toBe("Runnable Lab");
+    expect(flagship?.lastVerified).toBe("2026-10-03");
     expect(flagship?.limitations.some((item) => item.includes("No public multi-GPU"))).toBe(true);
+    expect(flagship?.limitations.join(" ")).toMatch(/not a power-loss durability proof/);
+    expect(flagship?.limitations.join(" ")).toMatch(/arbitrary asynchronous kill timing remains unverified/);
+    expect(flagship?.limitations.join(" ")).toMatch(/not throughput benchmarks or recovery SLOs/);
     for (const metric of flagship?.metrics ?? []) {
       expect(metric.evidence.sourceUrl).toMatch(/^https:\/\/github\.com\/ajaykr0905\//);
     }
@@ -71,12 +75,50 @@ describe("project evidence model", () => {
   it("replaces weak volume counts with exact restart equality", () => {
     const transformer = projects.find((project) => project.visualKey === "transformer");
     expect(transformer?.metrics.some((metric) => metric.value === "512")).toBe(false);
+    expect(transformer?.metrics.some((metric) => metric.value === "9 / 9")).toBe(false);
     expect(transformer?.metrics).toEqual(expect.arrayContaining([
       expect.objectContaining({
         value: "rtol 0 / atol 0",
         label: "resumed model-state equality",
       }),
     ]));
+  });
+
+  it("separates pinned public-corpus kill evidence from network-free fixture CI", () => {
+    const transformer = projects.find((project) => project.visualKey === "transformer");
+    const recoveryMetrics = transformer?.metrics.filter((metric) => metric.value !== "5.5%") ?? [];
+    expect(recoveryMetrics).toHaveLength(2);
+    expect(recoveryMetrics[0]).toMatchObject({
+      value: "4 / 4",
+      label: "SIGKILL boundaries recovered on public data",
+    });
+    for (const metric of recoveryMetrics) {
+      expect(metric.evidence.commitSha).toBe("e6a7d44a7f60b5f87e60e28efe6232070b43954e");
+      expect(metric.evidence.sourceUrl).toContain("/artifacts/peps-process-kill-2026-10-03");
+      expect(metric.evidence.command).toContain("fttl-verify-process-recovery");
+      expect(metric.evidence.command).toContain("--dataset-manifest .cache/fttl/peps-v1/manifest.json");
+      expect(metric.evidence.ciLabel).toContain("network-free CC0 fixture");
+      expect(metric.evidence.ciUrl).toBe("https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/37114067040/job/111177338320");
+      expect(metric.evidence.environment).toContain("Local deterministic CPU");
+      expect(metric.evidence.limitation).toMatch(/not/);
+    }
+    for (const boundary of ["before-forward", "after-backward", "after-optimizer", "during-checkpoint-write"]) {
+      expect(recoveryMetrics[0]?.evidence.command).toContain(boundary);
+    }
+    expect(transformer?.verification.join(" ")).toContain("384 input tokens");
+    expect(transformer?.limitations.join(" ")).toContain("12 windows from 12 documents");
+    expect(transformer?.replayScenarios[0]?.steps).toHaveLength(5);
+    expect(transformer?.replayScenarios[0]?.outcome).toContain("16 exact checks");
+    expect(transformer?.replayScenarios[0]?.sourceUrl).toContain("/after-optimizer/process-recovery-report.json");
+  });
+
+  it("preserves the original synthetic LoRA result and its independent evidence pin", () => {
+    const transformer = projects.find((project) => project.visualKey === "transformer");
+    const tuning = transformer?.metrics.find((metric) => metric.value === "5.5%");
+    expect(tuning?.evidence.commitSha).toBe("41dcd0ea315515f63ea764225867ff569bc50316");
+    expect(tuning?.evidence.sourceUrl).toBe("https://github.com/ajaykr0905/fault-tolerant-transformer-lab/blob/41dcd0ea315515f63ea764225867ff569bc50316/artifacts/tuning-comparison/result.json");
+    expect(tuning?.evidence.ciUrl).toBe("https://github.com/ajaykr0905/fault-tolerant-transformer-lab/actions/runs/35731966039/job/106759520958");
+    expect(tuning?.evidence.limitation).toContain("synthetic tokens; not a quality comparison");
   });
 
   it("exposes truthful distributed failure semantics without a worker-kill control", () => {
