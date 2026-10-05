@@ -22,7 +22,6 @@ export function OpenSourceTracker() {
           {mergedOpenSourceContributions.map((contribution, index) => (
             <li key={contribution.url}>
               <a
-                aria-label={`${contribution.repository} ${contribution.pullRequest}: ${contribution.title}`}
                 className="open-source-card"
                 data-spectrum-option
                 href={contribution.url}
