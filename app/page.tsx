@@ -29,7 +29,11 @@ export default function HomePage() {
         <div className="hero-grid" data-pointer-surface>
           <div className="hero-content" data-cosmos-mask>
             <p className="identity-kicker">AJAY <span aria-hidden="true">/</span> SYSTEMS PORTFOLIO</p>
-            <p className="availability"><span aria-hidden="true" /> Software Engineer II @ Cisco · Open-source developer · Building fault-tolerant AI and security labs in public</p>
+            <p className="availability">
+              <span aria-hidden="true" /> Software Engineer II @ Cisco · {" "}
+              <Link className="availability-link" href={siteConfig.openSourceTrackerPath}>opensource_dev</Link>
+              {" "}· Building fault-tolerant AI and security labs in public
+            </p>
             <h1>{siteConfig.title}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">

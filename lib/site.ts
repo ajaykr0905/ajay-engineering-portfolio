@@ -13,6 +13,8 @@ export const siteConfig = {
     "https://mail.google.com/mail/?view=cm&fs=1&to=ajaykumar.rob27%40gmail.com&su=Portfolio%20conversation",
   github: "https://github.com/ajaykr0905",
   linkedin: "https://www.linkedin.com/in/ajay-kumar-pondugala-3b3b711b8/",
+  openSourceTrackerPath: "/opensource_dev",
+  openSourceTrackerUrl: "https://ajaykr-engineering-portfolio.vercel.app/opensource_dev",
   resumePath: "/Ajay_Kumar_Pondugala_Resume.pdf",
 } as const;
 

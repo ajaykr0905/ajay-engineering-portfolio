@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const sourceRoots = ["app", "components", "lib"];
-const validStaticRoutes = new Set(["/", "/experience", "/writing", "/resume", "/#projects"]);
+const validStaticRoutes = new Set(["/", "/experience", "/writing", "/resume", "/opensource_dev", "/#projects"]);
 const projectSlugs = ["fault-tolerant-transformer-lab", "distributed-scale-validation-platform", "voicemed-ai"];
 for (const slug of projectSlugs) validStaticRoutes.add(`/projects/${slug}`);
 

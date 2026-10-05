@@ -327,6 +327,16 @@ button:focus-visible {
   box-shadow: 0 0 0 0.3rem rgb(255 255 255 / 0.08);
 }
 
+.availability-link {
+  border-bottom: 1px solid color-mix(in srgb, var(--spectrum-color) 65%, transparent);
+  color: var(--spectrum-color);
+  text-underline-offset: 0.2rem;
+}
+
+.availability-link:hover {
+  border-color: currentColor;
+}
+
 .hero h1,
 .page-header h1,
 .project-header h1,
