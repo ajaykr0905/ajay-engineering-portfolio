@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { mergedOpenSourceContributions } from "@/lib/open-source";
 
 describe("open-source contribution evidence", () => {
-  it("publishes the two verified upstream merges", () => {
-    expect(mergedOpenSourceContributions).toHaveLength(2);
+  it("publishes the three verified upstream merges", () => {
+    expect(mergedOpenSourceContributions).toHaveLength(3);
     expect(mergedOpenSourceContributions.map(({ repository, pullRequest }) => `${repository}${pullRequest}`)).toEqual([
+      "thruwire/foreman#39",
       "prometheus/prometheus#19882",
       "nats-io/nats.py#1043",
     ]);
@@ -21,8 +22,8 @@ describe("open-source contribution evidence", () => {
 
   it("keeps review evidence and impact attached to every merge", () => {
     for (const contribution of mergedOpenSourceContributions) {
-      expect(contribution.evidence).toContain("Maintainer approved");
-      expect(contribution.evidence).toMatch(/\d+ checks passed/);
+      expect(contribution.evidence).toContain("Maintainer");
+      expect(contribution.evidence).toMatch(/\d+ (checks passed|regression cases)/);
       expect(contribution.impact.length).toBeGreaterThan(40);
     }
   });

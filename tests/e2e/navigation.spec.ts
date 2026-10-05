@@ -22,7 +22,11 @@ test("open-source shortcut lands on the live contribution tracker", async ({ pag
   await expect(page).toHaveURL(/\/#open-source$/);
   const tracker = page.locator("#open-source");
   await expect(tracker.getByRole("heading", { name: "Upstream work, accepted." })).toBeVisible();
-  await expect(tracker.getByRole("link")).toHaveCount(2);
+  await expect(tracker.getByRole("link")).toHaveCount(3);
+  await expect(tracker.getByRole("link", { name: /thruwire\/foreman #39/ })).toHaveAttribute(
+    "href",
+    "https://github.com/thruwire/foreman/pull/39",
+  );
 });
 
 test("primary navigation targets the overview and exposes exactly one current destination", async ({ page }) => {

@@ -10,7 +10,7 @@ export function OpenSourceTracker() {
           <p className="eyebrow">Open source</p>
           <h2 id="open-source-heading">Upstream work, accepted.</h2>
           <p>
-            Focused reliability and authentication fixes reviewed and merged by project maintainers.
+            Focused reliability, state-integrity, and authentication fixes reviewed and merged by project maintainers.
           </p>
           <div aria-label={`${mergedCount} merged upstream pull requests`} className="open-source-count">
             <strong>{mergedCount}</strong>
