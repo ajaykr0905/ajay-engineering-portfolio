@@ -11,6 +11,11 @@ describe("public identity", () => {
     expect(siteConfig.github).toBe("https://github.com/ajaykr0905");
   });
 
+  it("publishes a stable short link for the open-source tracker", () => {
+    expect(siteConfig.openSourceTrackerPath).toBe("/opensource_dev");
+    expect(siteConfig.openSourceTrackerUrl).toBe(`${siteConfig.url}${siteConfig.openSourceTrackerPath}`);
+  });
+
   it("publishes working email contact destinations", () => {
     expect(siteConfig.emailHref).toBe("mailto:ajaykumar.rob27@gmail.com?subject=Portfolio%20conversation");
     const gmailUrl = new URL(siteConfig.gmailComposeUrl);
