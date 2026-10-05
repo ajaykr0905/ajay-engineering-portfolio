@@ -12,6 +12,18 @@ export type OpenSourceContribution = {
 
 export const mergedOpenSourceContributions: OpenSourceContribution[] = [
   {
+    repository: "thruwire/foreman",
+    pullRequest: "#39",
+    title: "Reject malformed persisted state before legacy migration",
+    area: "Persistence reliability",
+    impact:
+      "Routes malformed saved-state shapes through Foreman's existing error boundary so corrupt runs cannot crash list and inspect commands.",
+    mergedAt: "2026-10-05",
+    mergedOn: "05 Oct 2026",
+    evidence: "Maintainer merged · 15 regression cases",
+    url: "https://github.com/thruwire/foreman/pull/39",
+  },
+  {
     repository: "prometheus/prometheus",
     pullRequest: "#19882",
     title: "Restore firing alerts with short for durations",

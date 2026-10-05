@@ -1234,9 +1234,7 @@ main,
   }
 
   .open-source-impact {
-    margin-top: 0.45rem;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    display: none;
   }
 
   .open-source-evidence {
