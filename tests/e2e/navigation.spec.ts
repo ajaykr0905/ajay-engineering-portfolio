@@ -7,12 +7,22 @@ test("homepage communicates positioning and evidence path", async ({ page }) => 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Distributed Systems and AI Infrastructure Engineer");
   await expect(page.getByRole("link", { name: "See projects and code" })).toHaveAttribute("href", "/#projects");
-  await expect(page.getByText("Software Engineer II · Backend and platform reliability · Building fault-tolerant AI and security labs in public")).toBeVisible();
+  await expect(page.getByText("Software Engineer II @ Cisco", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "opensource_dev" })).toHaveAttribute("href", "/opensource_dev");
   await expect(page.getByText("What each project does—and what works today.")).toBeVisible();
 
   const primaryCallToAction = await page.getByRole("link", { name: "See projects and code" }).boundingBox();
   expect(primaryCallToAction).not.toBeNull();
   expect((primaryCallToAction?.y ?? 0) + (primaryCallToAction?.height ?? 0)).toBeLessThanOrEqual(720);
+});
+
+test("open-source shortcut lands on the live contribution tracker", async ({ page }) => {
+  await page.goto("/opensource_dev");
+
+  await expect(page).toHaveURL(/\/#open-source$/);
+  const tracker = page.locator("#open-source");
+  await expect(tracker.getByRole("heading", { name: "Upstream work, accepted." })).toBeVisible();
+  await expect(tracker.getByRole("link")).toHaveCount(2);
 });
 
 test("primary navigation targets the overview and exposes exactly one current destination", async ({ page }) => {
@@ -217,5 +227,5 @@ test("mobile header stays compact and project anchors clear it", async ({ page }
   })).toBe(true);
 
   const scrollHeight = await page.evaluate(() => document.documentElement.scrollHeight);
-  expect(scrollHeight).toBeLessThanOrEqual(5_600);
+  expect(scrollHeight).toBeLessThanOrEqual(6_300);
 });
