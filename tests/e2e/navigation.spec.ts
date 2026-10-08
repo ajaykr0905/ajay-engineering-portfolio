@@ -5,7 +5,9 @@ import { siteConfig } from "@/lib/site";
 test("homepage communicates positioning and evidence path", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Distributed Systems and AI Infrastructure Engineer");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(siteConfig.focus);
+  await expect(page.locator(".identity-kicker")).toContainText(siteConfig.name);
+  await expect(page.locator(".identity-kicker")).toContainText(siteConfig.location);
   await expect(page.getByRole("link", { name: "See projects and code" })).toHaveAttribute("href", "/#projects");
   await expect(page.getByText("Software Engineer II @ Cisco", { exact: false })).toBeVisible();
   await expect(page.getByRole("link", { name: "opensource_dev" })).toHaveAttribute("href", "/opensource_dev");
@@ -56,8 +58,14 @@ test("social metadata uses the verified site card without leaking it into projec
     "content",
     `${siteConfig.name} — ${siteConfig.title}`,
   );
-  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
-  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", `${siteConfig.url}/og.png`);
+  for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
+    const imageUrl = new URL(await page.locator(selector).getAttribute("content") ?? "");
+    expect(imageUrl.origin).toBe(siteConfig.url);
+    expect(imageUrl.pathname).toBe("/opengraph-image");
+  }
+  const image = await page.request.get("/opengraph-image");
+  expect(image.ok()).toBe(true);
+  expect(image.headers()["content-type"]).toContain("image/png");
 
   await page.goto("/projects/fault-tolerant-transformer-lab");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Fault-Tolerant Transformer Lab");
@@ -65,13 +73,50 @@ test("social metadata uses the verified site card without leaking it into projec
   await expect(page.locator('meta[name="twitter:image"]')).toHaveCount(0);
 });
 
-test("public identity and metadata use Ajay without surname leakage", async ({ page }) => {
+test("backend proof precedes accepted fixes and the recovery case study", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("article.project-card").first()).toContainText("Distributed Scale Validation Lab");
+  const order = await page.evaluate(() => {
+    const backend = document.querySelector('article[data-visual-key="distributed"]');
+    const fixes = document.querySelector("#open-source");
+    const recovery = document.querySelector('article[data-visual-key="transformer"]');
+    if (!backend || !fixes || !recovery) return false;
+    return Boolean(backend.compareDocumentPosition(fixes) & Node.DOCUMENT_POSITION_FOLLOWING)
+      && Boolean(fixes.compareDocumentPosition(recovery) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(order).toBe(true);
+  await page.getByRole("link", { name: "One-page recruiting evidence" }).click();
+  await expect(page).toHaveURL(/\/recruiting$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(siteConfig.name);
+  await expect(page.getByRole("link", { name: "nats-io/nats.py #1043" })).toHaveAttribute("href", "https://github.com/nats-io/nats.py/pull/1043");
+  await expect(page.getByRole("link", { name: "prometheus/prometheus #19882" })).toHaveAttribute("href", "https://github.com/prometheus/prometheus/pull/19882");
+  await expect(page.getByRole("link", { name: "Open the recovery replay" })).toHaveAttribute("href", "/projects/fault-tolerant-transformer-lab#failure-replay");
+  await expect(page.locator("main")).toContainText("in-memory functional run");
+  await expect(page.getByRole("link", { name: "Watch the 90-second recovery demo" })).toHaveAttribute("href", "https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/cf0ab0f93adc55f74fbdbcce2243dd6ecee3dd68/artifacts/2026-10-08-recovery-demo.mp4");
+  await expect(page.locator("main")).toContainText("not learner narration");
+  await expect(page.getByRole("link", { name: "Proof packet PDF" })).toHaveAttribute("href", siteConfig.proofPacketPath);
+  const proofPacket = await page.request.get(siteConfig.proofPacketPath);
+  expect(proofPacket.ok()).toBe(true);
+  expect(proofPacket.headers()["content-type"]).toContain("application/pdf");
+});
+
+test("concise backend articles expose their source and evidence limits", async ({ page }) => {
+  for (const slug of ["commit-before-ack", "transactional-outbox-recovery", "backpressure-under-load"]) {
+    await page.goto(`/writing/${slug}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Limitations", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Pinned source snapshot" })).toHaveAttribute("href", "https://github.com/ajaykr0905/distributed-scale-validation-lab/tree/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6");
+  }
+});
+
+test("public identity and metadata align the full professional name with a compact brand", async ({ page }) => {
   const routes = [
     "/",
     "/experience",
     "/writing",
     "/writing/deterministic-checkpoint-recovery",
     "/writing/at-least-once-idempotency",
+    "/recruiting",
     "/resume",
     "/projects/fault-tolerant-transformer-lab",
     "/projects/distributed-scale-validation-platform",
@@ -99,20 +144,18 @@ test("public identity and metadata use Ajay without surname leakage", async ({ p
       ).join(" "),
     }));
 
-    expect(publicIdentity.visibleText).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
-    expect(publicIdentity.title).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
-    expect(publicIdentity.metadata).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
-    expect(publicIdentity.structuredData).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
-    expect(publicIdentity.accessibleLabels).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+    expect(publicIdentity.visibleText).toContain(siteConfig.name);
+    expect(publicIdentity.title).toContain(siteConfig.name);
     expect(Object.values(publicIdentity).join(" ")).not.toMatch(/evidence checked/i);
   }
 
   await page.goto("/");
   const personJsonLd = await page.locator('script[type="application/ld+json"]').first().textContent();
-  expect(JSON.parse(personJsonLd ?? "{}").name).toBe("Ajay");
+  expect(JSON.parse(personJsonLd ?? "{}").name).toBe(siteConfig.name);
+  expect(JSON.parse(personJsonLd ?? "{}").worksFor.name).toBe("Cisco");
 
   await page.goto("/resume");
-  await expect(page.locator("iframe")).toHaveAttribute("title", "Ajay résumé");
+  await expect(page.locator("iframe")).toHaveAttribute("title", `${siteConfig.name} résumé`);
   await expect(page.locator("iframe")).toHaveAttribute("src", `${siteConfig.resumePath}#view=FitH`);
   await expect(page.getByRole("link", { name: "Download PDF" })).toHaveAttribute("href", siteConfig.resumePath);
   const resumeResponse = await page.request.get(siteConfig.resumePath);

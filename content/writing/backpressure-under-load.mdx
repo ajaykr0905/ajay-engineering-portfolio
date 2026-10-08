@@ -1,0 +1,45 @@
+Adding workers can increase throughput until another resource becomes the bottleneck. Past that point, workers may spend their time waiting for database connections while deliveries accumulate in memory. A useful backend needs bounds on accepted work, in-flight deliveries, retries, and database concurrency before a scaling chart means much.
+
+The [durable backend](https://github.com/ajaykr0905/distributed-scale-validation-lab/tree/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6) uses prefetch one, a bounded database pool, and admission capacity. Measurements record separate API, dispatcher, and worker processes against real PostgreSQL and RabbitMQ. The measured source is `6b01125cb71d49fc2fba1cf009aeb7d45e61cab6`; the old 10,000-job memory run remains a functional baseline with a different boundary.
+
+## Bound each place work waits
+
+Broker prefetch limits outstanding deliveries, but does not bound accepted backlog. The API serializes its unfinished-job capacity check within the acceptance transaction and returns 429 with `Retry-After` when full. Each worker receives one unacknowledged delivery. Validation retries have an attempt budget and delay; infrastructure failures roll back and requeue without spending validation attempts. These controls make overload visible instead of growing unbounded work in a process.
+
+<ol className="article-flow" aria-label="Backpressure boundaries">
+  <li className="article-flow-step"><span className="article-flow-index">01</span><strong>Admission</strong><span>Reject excess work before promising durable acceptance.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">02</span><strong>Delivery</strong><span>Bound in-flight messages separately from backlog.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">03</span><strong>Persistence</strong><span>Keep concurrent database work within the pool budget.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">04</span><strong>Recovery</strong><span>Retries consume a declared budget and exhausted work remains inspectable.</span></li>
+</ol>
+
+[RabbitMQ’s consumer-prefetch documentation](https://www.rabbitmq.com/docs/consumer-prefetch) describes how its limit applies to consumers. A configuration value alone does not prove good capacity. Measure the interaction between worker count, prefetch, payload cost, and database latency instead of selecting a larger number because it appears faster in a small run.
+
+## Measure the full path
+
+For each trial, account for accepted jobs and terminal outcomes. The corrected latency measurement starts immediately before HTTP submission on the client monotonic clock and ends at the first observed committed completed-job/result join. It includes acceptance, publication, processing, and observation overhead. Approximately 50 ms polling plus query/resource sampling and scheduling are part of that boundary; this is not an isolated SQL commit duration.
+
+The recorded protocol uses 1, 2, 4, and 8 separate workers, a fixed seeded workload, warm-up, and three measured trials. Each worker-count group has its own empty schema. Every resource sample verifies each expected live PID exactly once. The [corrected report and raw samples](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/0a03f985bb78a7a0889e541ece71672b74a73912/artifacts/2026-10-08-durable-results-v2.md) retain every trial rather than selecting the fastest. These runs did not demonstrate linear worker scaling: the producer and confirmed dispatcher can limit load.
+
+## Rejected approaches
+
+A memory queue bypasses broker delivery and database contention. One successful message proves an adapter contract, not saturation behavior. Reporting only averages hides slow tails; reporting only enqueued jobs hides uncompleted work. Faster admission with an ever-growing backlog is not higher completion throughput.
+
+## Reproduce the result
+
+Start the dedicated services and export the [README environment](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6/README.md). Then run the corrected harness on a clean measured source:
+
+```bash
+git clone https://github.com/ajaykr0905/distributed-scale-validation-lab.git
+cd distributed-scale-validation-lab
+git checkout 6b01125cb71d49fc2fba1cf009aeb7d45e61cab6
+go build -o bin/durable ./cmd/durable
+go build -o bin/durable-benchmark ./cmd/benchmark
+SCALE_LAB_DOCKER_PROJECT=ajay-durable-local bin/durable-benchmark -bin bin/durable -seed public-durable-v1 -warmup 100 -count 1000 -output artifacts/local/durable-benchmark.json
+```
+
+Retain the output, all twelve trials, and the declared source state. The historical SQL-timestamp intervals are superseded for observed-result latency. Broker-stop recovery is a separate integration test and receipt; the performance command does not inject an outage.
+
+## Limitations
+
+This is a lightweight synthetic workload on one host with broker/database in Docker Desktop. Resource samples cover API/dispatcher/workers, excluding broker, database, and VM resources. `ps` CPU is a lifetime average; approximately 50 ms sampling may miss peaks. Observed latency includes sampling and polling, with no fixed upper observation delay under load. These measurements establish neither production capacity nor hardware-independent performance. Failure recovery, database failover, and multi-host operation remain separate questions.

@@ -7,10 +7,10 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="shell header-inner">
-        <Link aria-label={siteConfig.name} className="brand" href="/" data-spectrum-option>
+        <Link aria-label={siteConfig.shortName} className="brand" href="/" data-spectrum-option>
           <span className="brand-mark" aria-hidden="true" />
           {" "}
-          <span className="brand-name">{siteConfig.name}</span>
+          <span className="brand-name">{siteConfig.shortName}</span>
         </Link>
         <PrimaryNavigation />
         <div className="header-controls">

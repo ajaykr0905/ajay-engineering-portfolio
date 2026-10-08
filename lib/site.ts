@@ -1,9 +1,10 @@
 export const siteConfig = {
-  name: "Ajay",
+  name: "Ajay Kumar Pondugala",
   shortName: "Ajay",
-  title: "Distributed Systems and AI Infrastructure Engineer",
+  title: "Software Engineer II at Cisco | Backend & Distributed Systems | Go, Java, PostgreSQL, Kubernetes",
+  focus: "Backend & Distributed Systems",
   description:
-    "I build failure-aware backend and AI systems that engineers can inspect, run, break, and verify through tests, CI runs, versioned artifacts, and honest limitations.",
+    "Software Engineer II at Cisco in Bengaluru. Go/Java services, PostgreSQL, messaging, and failure recovery, with merged NATS and Prometheus fixes and reproducible public labs.",
   location: "Bengaluru, India",
   url: "https://ajaykr-engineering-portfolio.vercel.app",
   website: "https://ajaykr-engineering-portfolio.vercel.app",
@@ -16,6 +17,8 @@ export const siteConfig = {
   openSourceTrackerPath: "/opensource_dev",
   openSourceTrackerUrl: "https://ajaykr-engineering-portfolio.vercel.app/opensource_dev",
   resumePath: "/Ajay_Kumar_Pondugala_Resume.pdf",
+  recruitingPath: "/recruiting",
+  proofPacketPath: "/Ajay_Backend_Proof_Packet.pdf",
 } as const;
 
 export const primaryNavigation = [
@@ -28,11 +31,10 @@ export const primaryNavigation = [
 export const stack = [
   "Go",
   "Java",
-  "Python",
-  "Kubernetes",
-  "OpenTelemetry",
-  "Security Engineering",
-  "Vulnerability Management",
   "PostgreSQL",
-  "PyTorch",
+  "RabbitMQ",
+  "NATS",
+  "Kubernetes",
+  "Prometheus",
+  "OpenTelemetry",
 ] as const;

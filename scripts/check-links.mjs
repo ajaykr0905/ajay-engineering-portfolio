@@ -2,10 +2,13 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
-const sourceRoots = ["app", "components", "lib"];
-const validStaticRoutes = new Set(["/", "/experience", "/writing", "/resume", "/opensource_dev", "/#projects"]);
-const projectSlugs = ["fault-tolerant-transformer-lab", "distributed-scale-validation-platform", "voicemed-ai"];
+const sourceRoots = ["app", "components", "lib", "content"];
+const validStaticRoutes = new Set(["/", "/experience", "/writing", "/resume", "/recruiting", "/opensource_dev"]);
+const projectSlugs = ["fault-tolerant-transformer-lab", "distributed-scale-validation-platform", "voicemed-ai", "evidence-first-security-harness"];
 for (const slug of projectSlugs) validStaticRoutes.add(`/projects/${slug}`);
+for (const slug of ["deterministic-checkpoint-recovery", "at-least-once-idempotency", "commit-before-ack", "transactional-outbox-recovery", "backpressure-under-load"]) {
+  validStaticRoutes.add(`/writing/${slug}`);
+}
 
 async function collect(directory) {
   const entries = await readdir(directory);
@@ -26,7 +29,7 @@ for (const file of files) {
   const source = await readFile(file, "utf8");
   for (const match of source.matchAll(/(?:href|canonical):?\s*=?(?:\{|\s)*["'`]([^"'`]+)["'`]/g)) {
     const href = match[1];
-    if (href.startsWith("/") && !href.includes("${") && !href.endsWith(".pdf") && !validStaticRoutes.has(href)) {
+    if (href.startsWith("/") && !href.includes("${") && !href.endsWith(".pdf") && !validStaticRoutes.has(href.split("#")[0])) {
       missing.push(`${path.relative(root, file)} -> ${href}`);
     }
   }

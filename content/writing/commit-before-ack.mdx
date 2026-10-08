@@ -1,0 +1,45 @@
+When a worker writes to PostgreSQL and settles a RabbitMQ delivery, it performs two actions in different systems. There is no ordering that makes those actions one transaction. The useful design question is which interrupted state the application can recover.
+
+This note examines the [durable processing transaction](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6/internal/durable/process.go) at `6b01125cb71d49fc2fba1cf009aeb7d45e61cab6`. A worker commits its result and completed status together before the transport acknowledges. Real PostgreSQL/RabbitMQ tests interrupt helper subprocesses at known transaction boundaries and then inspect recovered accounting.
+
+## Choose the recoverable failure window
+
+Acknowledging first allows the broker to discard a message before its result exists. A crash in between can leave accepted work missing. Persisting first allows redelivery after a crash, but a durable uniqueness boundary can absorb the duplicate.
+
+<ol className="article-flow" aria-label="Commit-before-ack failure window">
+  <li className="article-flow-step"><span className="article-flow-index">01</span><strong>Receive</strong><span>The delivery keeps the stable job identity.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">02</span><strong>Commit</strong><span>The result is accepted behind a unique database key.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">03</span><strong>Lose the worker</strong><span>The commit exists while acknowledgement may be absent.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">04</span><strong>Redeliver</strong><span>The next worker sees the existing result and safely acknowledges.</span></li>
+</ol>
+
+The unique key protects the stored result, not every operation executed along the way. Validation can run twice. An email, payment, or HTTP mutation performed before the guarded commit could also repeat unless it has its own idempotency contract. [PostgreSQL’s `ON CONFLICT` documentation](https://www.postgresql.org/docs/current/sql-insert.html) describes the database primitive used by the baseline store.
+
+## Separate delivery evidence from application evidence
+
+A publisher confirmation says something about publication to the broker. A consumer acknowledgement says something about the consumer’s handling of its delivery. Neither demonstrates that a database transaction committed. [RabbitMQ documents these as independent mechanisms](https://www.rabbitmq.com/docs/confirms).
+
+Application status comes from PostgreSQL through `GET /api/v1/jobs/{id}`. Jobs are pending, retrying, completed, or failed independently of a publisher connection. `POST /api/v1/jobs` canonicalizes the typed payload and binds it to the idempotency key. Repeating an identical request returns the existing job; changing its payload under the same key returns a conflict.
+
+The worker locks the job row before checking its status and attempt. A terminal or old-attempt redelivery increments the duplicate count and acknowledges without inserting another result. A validation error commits retry or failed state and the next outbox notification. A database error rolls the transaction back and requeues without spending a validation attempt.
+
+## Rejected approaches
+
+An in-memory “seen” map disappears with the worker and cannot arbitrate concurrent processes. Generating a fresh identity on each retry turns duplicate delivery into new work. Treating an acknowledgement error as proof that the transaction failed can cause unsafe compensating writes. Each shortcut conflates the job’s identity, durable effect, and delivery state.
+
+## Reproduce the result
+
+Start with the [pinned README’s isolated Compose services and exported environment](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6/README.md). Then run the real-service subprocess regression:
+
+```bash
+git clone https://github.com/ajaykr0905/distributed-scale-validation-lab.git
+cd distributed-scale-validation-lab
+git checkout 6b01125cb71d49fc2fba1cf009aeb7d45e61cab6
+SCALE_LAB_INTEGRATION=1 go test -race -tags=integration ./internal/durable -run '^TestWorkerAndDispatcherProcessDeath$' -count=1
+```
+
+The helper exits with code 86 before commit or after commit-before-ack. Before commit, the job remains pending with no consumed attempt. After commit, the result already exists. Redelivery must leave one accepted, completed job and one result; the after-commit case also records the duplicate. The dispatcher’s after-publish case exercises the other duplicate window. The corrected [reliability report](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/0a03f985bb78a7a0889e541ece71672b74a73912/artifacts/2026-10-08-durable-results-v2.md) keeps recovery proof separate from performance trials.
+
+## Limitations
+
+These are actual test-helper process exits at injected boundaries, not arbitrary SIGKILL timing against the standalone worker. The services remain on one host and the database/filesystem stay alive. The guarantee protects a pure synthetic validation result; external side effects, database failover, power loss, authenticated operation, and production readiness need additional protocols and proof. The historical memory-only duplicate regression remains useful but is a different evidence boundary.

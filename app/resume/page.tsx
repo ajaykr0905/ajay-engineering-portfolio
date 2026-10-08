@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Résumé",
-  description: `Résumé for ${siteConfig.name}, distributed systems and AI infrastructure engineer.`,
+  description: `Résumé for ${siteConfig.name}, Software Engineer II at Cisco working with Go, Java, PostgreSQL, and Kubernetes in Bengaluru.`,
   alternates: { canonical: "/resume" },
 };
 

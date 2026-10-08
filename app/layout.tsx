@@ -30,6 +30,13 @@ export const metadata: Metadata = {
     "distributed systems engineer",
     "AI infrastructure engineer",
     "backend engineer",
+    "backend reliability",
+    "service infrastructure",
+    "Bengaluru",
+    "PostgreSQL",
+    "RabbitMQ",
+    "NATS",
+    "Prometheus",
     "Kubernetes",
     "Go",
     "Java",
@@ -47,7 +54,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: `${siteConfig.name} — ${siteConfig.title}`,
@@ -58,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} — ${siteConfig.title}`,
     description: siteConfig.description,
-    images: ["/og.png"],
+    images: ["/opengraph-image"],
   },
   icons: {
     icon: "/icon.svg",

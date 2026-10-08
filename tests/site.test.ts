@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { primaryNavigation, siteConfig, stack } from "@/lib/site";
 
 describe("public identity", () => {
-  it("uses the concise public name", () => {
-    expect(siteConfig.name).toBe("Ajay");
+  it("aligns professional identity while retaining the compact site brand", () => {
+    expect(siteConfig.name).toBe("Ajay Kumar Pondugala");
     expect(siteConfig.shortName).toBe("Ajay");
   });
 
@@ -29,8 +29,11 @@ describe("public identity", () => {
   });
 
   it("states the selected engineering position", () => {
-    expect(siteConfig.title).toBe("Distributed Systems and AI Infrastructure Engineer");
+    expect(siteConfig.title).toBe("Software Engineer II at Cisco | Backend & Distributed Systems | Go, Java, PostgreSQL, Kubernetes");
+    expect(siteConfig.focus).toBe("Backend & Distributed Systems");
+    expect(siteConfig.location).toBe("Bengaluru, India");
+    expect(siteConfig.website).toBe(siteConfig.url);
     expect(stack).toContain("Go");
-    expect(stack).toContain("PyTorch");
+    expect(stack).toEqual(expect.arrayContaining(["Java", "PostgreSQL", "RabbitMQ", "NATS", "Kubernetes"]));
   });
 });

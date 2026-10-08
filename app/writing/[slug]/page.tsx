@@ -12,6 +12,9 @@ import {
 type ArticleModule = { default: ComponentType };
 
 const articleLoaders = {
+  "commit-before-ack": () => import("@/content/writing/commit-before-ack.mdx"),
+  "transactional-outbox-recovery": () => import("@/content/writing/transactional-outbox-recovery.mdx"),
+  "backpressure-under-load": () => import("@/content/writing/backpressure-under-load.mdx"),
   "deterministic-checkpoint-recovery": () => import("@/content/writing/deterministic-checkpoint-recovery.mdx"),
   "at-least-once-idempotency": () => import("@/content/writing/at-least-once-idempotency.mdx"),
 } satisfies Record<WritingSlug, () => Promise<ArticleModule>>;

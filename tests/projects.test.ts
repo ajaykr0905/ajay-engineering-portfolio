@@ -15,7 +15,7 @@ describe("project evidence model", () => {
   });
 
   it("assigns each published system one supported visual identity", () => {
-    expect(projects.map((project) => project.visualKey)).toEqual(["transformer", "distributed", "voicemed", "security"]);
+    expect(projects.map((project) => project.visualKey)).toEqual(["distributed", "transformer", "voicemed", "security"]);
     expect(projectVisualKeySchema.safeParse("security").success).toBe(true);
   });
 
@@ -121,20 +121,33 @@ describe("project evidence model", () => {
     expect(tuning?.evidence.limitation).toContain("synthetic tokens; not a quality comparison");
   });
 
-  it("exposes truthful distributed failure semantics without a worker-kill control", () => {
+  it("exposes real-service recovery boundaries without claiming arbitrary worker kills", () => {
     const distributed = projects.find((project) => project.visualKey === "distributed");
-    expect(distributed?.metrics.map((metric) => metric.value)).toEqual(["2 → 1", "3 → DLQ", "1 / 1", "10,000 / 10,000"]);
-    expect(distributed?.metrics.map((metric) => metric.evidence.ciUrl)).toEqual(expect.arrayContaining([
-      "https://github.com/ajaykr0905/distributed-scale-validation-lab/actions/runs/35731961184/job/106759506319",
-      "https://github.com/ajaykr0905/distributed-scale-validation-lab/actions/runs/35731961184/job/106759506059",
+    expect(distributed?.status).toBe("Runnable Lab");
+    expect(distributed?.limitations.join(" ")).toContain("single-process memory-adapter functional run");
+    expect(distributed?.decisions.map(({ detail }) => detail).join(" ")).toContain("SKIP LOCKED");
+    expect(distributed?.evidenceLinks?.some(({ url }) => url.endsWith("/artifacts/2026-10-08-durable-results-v2.md"))).toBe(true);
+    expect(distributed?.evidenceLinks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ url: "https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/6cc588b72cb44258d65ea12e6f18ec281e9ea033/artifacts/2026-10-08-binary-inspection-v2.json" }),
     ]));
+    expect(distributed?.failureModes.join(" ")).toContain("fault-helper subprocess exits");
+    expect(distributed?.limitations.join(" ")).toContain("approximately 50 ms polling");
+    expect(distributed?.metrics.map((metric) => metric.value)).toEqual(["12 / 12", "262.73 – 323.21", "95.43 – 151.08", "3.402 s"]);
+    expect(distributed?.metrics.every(({ evidence }) => evidence.ciUrl === "https://github.com/ajaykr0905/distributed-scale-validation-lab/actions/runs/37741425446/job/113192773204")).toBe(true);
+    expect(distributed?.metrics.every(({ evidence }) => evidence.commitSha === "0a03f985bb78a7a0889e541ece71672b74a73912")).toBe(true);
+    expect(distributed?.metrics[0]?.evidence.command).toContain("6b01125cb71d49fc2fba1cf009aeb7d45e61cab6");
+    expect(distributed?.metrics[1]?.evidence.limitation).toContain("do not demonstrate linear worker scaling");
+    expect(distributed?.metrics[2]?.evidence.limitation).toContain("Not isolated SQL commit duration");
+    expect(distributed?.metrics[3]?.evidence.limitation).toContain("different trial");
     expect(distributed?.replayScenarios.map((scenario) => scenario.id)).toEqual([
-      "duplicate-delivery",
-      "retry-failed-job",
-      "bounded-dead-letter",
+      "commit-before-ack",
+      "outbox-recovery",
+      "broker-restart",
     ]);
     expect(distributed?.replayScenarios.map((scenario) => scenario.label).join(" ")).not.toMatch(/kill/i);
     expect(distributed?.demoPath).toBe("/projects/distributed-scale-validation-platform#failure-replay");
+    expect(distributed?.demoUrl).toBe("https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/cf0ab0f93adc55f74fbdbcce2243dd6ecee3dd68/artifacts/2026-10-08-recovery-demo.mp4");
+    expect(distributed?.limitations.join(" ")).toContain("separate trial from the v2 receipt");
   });
 
   it("grounds the VoiceMed review replay in the pinned browser gate", () => {

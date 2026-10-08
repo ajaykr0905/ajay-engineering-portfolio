@@ -12,7 +12,8 @@ const personJsonLd = {
   "@type": "Person",
   name: siteConfig.name,
   url: siteConfig.url,
-  jobTitle: siteConfig.title,
+  jobTitle: "Software Engineer II",
+  worksFor: { "@type": "Organization", name: "Cisco" },
   email: `mailto:${siteConfig.email}`,
   address: { "@type": "PostalAddress", addressLocality: "Bengaluru", addressCountry: "IN" },
   sameAs: [siteConfig.github, siteConfig.linkedin],
@@ -28,13 +29,11 @@ export default function HomePage() {
       <section className="hero shell">
         <div className="hero-grid" data-pointer-surface>
           <div className="hero-content" data-cosmos-mask>
-            <p className="identity-kicker">AJAY <span aria-hidden="true">/</span> SYSTEMS PORTFOLIO</p>
+            <p className="identity-kicker">{siteConfig.name} <span aria-hidden="true">/</span> {siteConfig.location}</p>
             <p className="availability">
-              <span aria-hidden="true" /> Software Engineer II @ Cisco · {" "}
-              <Link className="availability-link" href={siteConfig.openSourceTrackerPath}>opensource_dev</Link>
-              {" "}· Building fault-tolerant AI and security labs in public
+              <span aria-hidden="true" /> Software Engineer II @ Cisco · Backend and platform opportunities in India
             </p>
-            <h1>{siteConfig.title}</h1>
+            <h1>{siteConfig.focus}</h1>
             <p className="hero-copy">{siteConfig.description}</p>
             <div className="hero-actions">
               <Link className="button button-primary" data-spectrum-option href="/#projects">
@@ -44,6 +43,10 @@ export default function HomePage() {
                 Download résumé <span aria-hidden="true" className="action-arrow">↓</span>
               </a>
             </div>
+            <p className="inline-links">
+              <Link className="text-link" data-spectrum-option href={siteConfig.recruitingPath}>One-page recruiting evidence <span aria-hidden="true" className="action-arrow">→</span></Link>
+              <Link className="text-link" data-spectrum-option href={siteConfig.openSourceTrackerPath}>opensource_dev <span aria-hidden="true" className="action-arrow">→</span></Link>
+            </p>
           </div>
           <aside className="hero-proof" aria-label="Evidence before claims">
             <p className="eyebrow">Evidence before claims</p>
@@ -81,11 +84,17 @@ export default function HomePage() {
           aside={<p className="section-aside">Open a project for the problem, working code, setup guide, tests, and current limitations.</p>}
         />
         <div className="project-list">
-          {featuredProjects.map((project, index) => <ProjectCard key={project.slug} project={project} index={index} />)}
+          {featuredProjects.slice(0, 1).map((project, index) => <ProjectCard key={project.slug} project={project} index={index} />)}
         </div>
       </section>
 
       <OpenSourceTracker />
+
+      <section className="shell" aria-label="Additional engineering case studies">
+        <div className="project-list">
+          {featuredProjects.slice(1).map((project, index) => <ProjectCard key={project.slug} project={project} index={index + 1} />)}
+        </div>
+      </section>
 
       <section className="section shell" id="research">
         <SectionHeading eyebrow="Research practice" title="A public learning trail, with runnable evidence." />

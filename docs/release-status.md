@@ -1,6 +1,73 @@
 # Release status
 
-Status recorded on 2026-09-23.
+## Backend positioning revision · 8 October 2026
+
+- Professional identity and metadata use Ajay Kumar Pondugala; the compact header
+  brand remains Ajay. Role, Bengaluru location, backend focus, and primary skills
+  appear on the first screen.
+- The distributed lab is the first case study and is marked Runnable Lab. Accepted
+  NATS and Prometheus contributions follow, then the verified transformer CPU
+  recovery case study. Corrected external-path metrics replace the older baseline
+  cards; the historical memory-only receipt stays linked and explicitly scoped.
+- `/recruiting` is the public one-page evidence packet. `/opensource_dev` remains
+  the accepted-contribution shortcut. The canonical URL stays
+  `https://ajaykr-engineering-portfolio.vercel.app`.
+- NATS #1043 merged at `2026-10-01T21:36:34Z`, Prometheus #19882 at
+  `2026-10-05T10:20:20Z`, and Foreman #39 at `2026-10-05T13:00:52Z`.
+  Display labels explicitly use UTC. Prometheus restores activation time and
+  resumes firing on the next evaluation; immediate firing is not claimed.
+- Three concise field notes explain commit-before-ack, outbox recovery, and
+  backpressure. They pin the corrected durable source, real-service regressions,
+  and complete local observed-result receipts. Polling overhead, single-host
+  scope, and the later binary-provenance inspection are explicit limitations.
+- A build-generated monochrome social image aligns professional identity and
+  role with the current page metadata. The previous image remains historical.
+- The backend's passing durable race/integration job is linked separately from
+  local measurements. All twelve trials retain 12,000 measured completed jobs;
+  throughput is 262.73–323.21 jobs/s and observed p95 is 95.43–151.08 ms, including
+  approximately 50 ms polling plus query, sampling, and scheduler overhead.
+- The corrected broker restart receipt is one 3.401676166-second local sample.
+  The 90-second captioned replay of actual agent terminal output contains a
+  separate 5.119233-second restart. Both include Compose startup/health; neither
+  is a recovery SLO or learner narration. Interactive replays trace the linked
+  real-service helper exits and broker outage, not live system controls.
+- Backend `v0.1.0` is an experimental prerelease, not a production certification.
+
+Local verification passed: lint, type checking, 52 unit/data tests, internal-link
+validation across 41 source files, production build with 21 static pages and
+102 kB shared first-load JavaScript, and 52 desktop/mobile browser tests with
+10 intentional profile skips. The existing mobile compactness limit is retained.
+Brave runs the macOS browser checks; CI continues to use bundled Chromium.
+Lighthouse category gates passed across five routes and 15 runs. Accessibility,
+best-practice, and SEO medians are 1.00; performance medians are 0.94–0.99.
+All samples are retained: home scored 0.71/0.99/0.94; experience 0.99/0.99/0.99;
+recruiting 0.99/0.84/0.99; backend 0.93/0.99/0.99; transformer 0.98/0.98/0.99.
+Warnings about DOM size, render blocking, legacy JavaScript, and main-thread
+work remain visible. No existing assertion threshold was lowered.
+Secret-pattern and diff checks passed. Portfolio publication and signed-out
+production verification remain pending. No production capacity, multi-host
+deployment, arbitrary kill timing, database
+failover, or recovery SLO is claimed by these portfolio changes.
+
+### Mobile compactness follow-up
+
+The first PR build failed the existing 6,300 px homepage-height gate at 360 × 800:
+desktop Chromium measured 6,302 px and mobile Chromium 6,301 px on all three CI
+attempts. This was a reproducible layout overflow, not a demonstrated flaky test.
+The backend and transformer preview summaries are now shorter; the complete case
+studies and their evidence limits remain unchanged. No CSS, assertion, threshold,
+or suppression was changed for this fix.
+
+The public Playwright 1.63.0 Linux/amd64 image reproduced the overflow against the
+local production build. Explicitly waiting for loaded fonts measured 6,358/6,357 px
+before the fix and 6,284/6,283 px after it (desktop/mobile presets). The unchanged
+compactness test then passed six runs, three per preset. Lint, type checks, all 52
+unit/data tests, internal-link validation, production build, and the full macOS
+headless browser suite also passed (52 tests, 10 intentional profile skips).
+Diff and secret-pattern review passed. The follow-up still requires fresh normal
+PR CI and production verification before merge/publication is claimed.
+
+Historical release status recorded on 2026-09-23 follows.
 
 ## Monochrome cosmos preview
 

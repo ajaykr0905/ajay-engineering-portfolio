@@ -4,6 +4,9 @@ import { describe, expect, it } from "vitest";
 import { getWritingArticle, writingArticles, writingSlugs } from "@/lib/writing";
 
 const expectedCommits = {
+  "commit-before-ack": "6b01125cb71d49fc2fba1cf009aeb7d45e61cab6",
+  "transactional-outbox-recovery": "6b01125cb71d49fc2fba1cf009aeb7d45e61cab6",
+  "backpressure-under-load": "6b01125cb71d49fc2fba1cf009aeb7d45e61cab6",
   "deterministic-checkpoint-recovery": "41dcd0ea315515f63ea764225867ff569bc50316",
   "at-least-once-idempotency": "e0a1a197265869a15043df462d1f230221660ba5",
 } as const;
@@ -21,11 +24,13 @@ function proseWordCount(source: string) {
 }
 
 describe("technical writing library", () => {
-  it("publishes exactly the two routed long-form articles", () => {
+  it("routes two long-form articles and three concise backend field notes", () => {
     expect(writingArticles.map((article) => article.slug)).toEqual(writingSlugs);
     expect(new Set(writingArticles.map((article) => article.slug)).size).toBe(writingArticles.length);
     for (const slug of writingSlugs) expect(getWritingArticle(slug)?.slug).toBe(slug);
     expect(getWritingArticle("not-an-article")).toBeUndefined();
+    expect(writingArticles.filter(({ format }) => format === "field-note")).toHaveLength(3);
+    expect(writingArticles.filter(({ format }) => format === "long-form")).toHaveLength(2);
   });
 
   it("pins every evidence link to the reviewed public commit", () => {
@@ -39,7 +44,8 @@ describe("technical writing library", () => {
   it("keeps each article substantive, reproducible, and explicit about limits", () => {
     for (const slug of writingSlugs) {
       const source = articleSource(slug);
-      expect(proseWordCount(source)).toBeGreaterThanOrEqual(900);
+      const minimumWords = getWritingArticle(slug)?.format === "long-form" ? 900 : 350;
+      expect(proseWordCount(source)).toBeGreaterThanOrEqual(minimumWords);
       expect(source).toContain("className=\"article-flow\"");
       expect(source).toMatch(/## (Rejected approaches|Approaches the design rejects)/);
       expect(source).toContain("## Reproduce the result");
@@ -48,11 +54,13 @@ describe("technical writing library", () => {
     }
   });
 
-  it("uses the concise public identity without surname leakage", () => {
-    const completeWritingSurface = [
-      JSON.stringify(writingArticles),
-      ...writingSlugs.map(articleSource),
-    ].join("\n");
-    expect(completeWritingSurface).not.toMatch(/Ajay (?:Kumar )?Pondugala/i);
+  it("grounds field notes in tested local contracts and corrected measurement boundaries", () => {
+    expect(articleSource("transactional-outbox-recovery")).toContain("FOR UPDATE SKIP LOCKED");
+    expect(articleSource("backpressure-under-load")).toContain("first observed committed completed-job/result join");
+    expect(articleSource("backpressure-under-load")).toContain("not an isolated SQL commit duration");
+    expect(articleSource("commit-before-ack")).toContain("not arbitrary SIGKILL timing");
+    for (const slug of writingSlugs.slice(0, 3)) {
+      expect(articleSource(slug)).toContain("0a03f985bb78a7a0889e541ece71672b74a73912");
+    }
   });
 });

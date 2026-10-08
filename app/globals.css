@@ -1547,6 +1547,7 @@ main,
 }
 
 .metric-card {
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 1rem;
   background: var(--surface);

@@ -1,8 +1,17 @@
 # Ajay Engineering Portfolio
 
-Public portfolio for Ajay, positioned around distributed systems and AI infrastructure engineering.
+Public portfolio for Ajay Kumar Pondugala, a Bengaluru-based Software Engineer II at Cisco, positioned around backend reliability and service infrastructure.
 
 **Production:** [ajaykr-engineering-portfolio.vercel.app](https://ajaykr-engineering-portfolio.vercel.app)
+
+The home page leads with the distributed backend lab, accepted NATS and
+Prometheus contributions, and the transformer recovery case study. The
+[one-page recruiting evidence](https://ajaykr-engineering-portfolio.vercel.app/recruiting)
+collects role, location, accepted fixes, résumé, and the existing recovery replay.
+Contribution dates use exact GitHub UTC timestamps. Backend field notes explain
+the implemented local transaction/recovery contract and corrected observed-result
+measurement boundary; the 10,000-job result remains a separate single-process
+memory-adapter functional run. Local receipts do not imply production capacity.
 
 ## Design goals
 
@@ -41,7 +50,7 @@ pnpm build
 pnpm test:e2e
 ```
 
-The GitHub Actions workflow also runs Lighthouse against the home page, experience page, and flagship project page.
+The GitHub Actions workflow also runs Lighthouse against the home page, experience page, recruiting packet, and both reliability case studies.
 
 See the [verified release status](docs/release-status.md) for completed gates and deliberately unclaimed work.
 The [end-to-end project delivery strategy](docs/project-delivery-strategy.md)
