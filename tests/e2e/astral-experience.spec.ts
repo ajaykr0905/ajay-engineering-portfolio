@@ -7,6 +7,10 @@ const publicRoutes = [
   "/writing",
   "/writing/deterministic-checkpoint-recovery",
   "/writing/at-least-once-idempotency",
+  "/writing/commit-before-ack",
+  "/writing/transactional-outbox-recovery",
+  "/writing/backpressure-under-load",
+  "/recruiting",
   "/resume",
   "/projects/fault-tolerant-transformer-lab",
   "/projects/distributed-scale-validation-platform",
@@ -247,19 +251,24 @@ test("failure replays expose linked-test provenance and complete manual controls
   })).toBe(true);
   await expect(replay.getByRole("heading", { name: "Replay the verified system path" })).toBeVisible();
   await expect(replay).toContainText("not live telemetry");
-  await expect(replay.getByRole("button", { name: "Inject duplicate" })).toHaveAttribute("aria-pressed", "true");
-  await expect(replay.locator('[aria-current="step"]')).toContainText("Publish the same identity twice");
+  await expect(replay.getByRole("button", { name: "Commit before ack" })).toHaveAttribute("aria-pressed", "true");
+  await expect(replay.locator('[aria-current="step"]')).toContainText("Accept durable work");
   await replay.getByRole("button", { name: "Next step" }).click();
-  await expect(replay.locator('[aria-current="step"]')).toContainText("Accept the first result");
-  await expect(replay.getByRole("link", { name: /pinned duplicate-delivery test/i })).toHaveAttribute(
+  await expect(replay.locator('[aria-current="step"]')).toContainText("Commit result and completed status");
+  await expect(replay.getByRole("link", { name: /pinned process-exit regression/i })).toHaveAttribute(
     "href",
-    /e0a1a197265869a15043df462d1f230221660ba5/,
+    /6b01125cb71d49fc2fba1cf009aeb7d45e61cab6/,
   );
+  await expect(replay).toContainText("not arbitrary SIGKILL timing");
+  await replay.getByRole("button", { name: "Recover outbox" }).click();
+  await expect(replay.locator('[aria-current="step"]')).toContainText("Commit publication intent");
+  await replay.getByRole("button", { name: "Restart broker" }).click();
+  await expect(replay.getByRole("link", { name: /pinned broker-restart receipt/i })).toHaveAttribute("href", /0a03f985bb78a7a0889e541ece71672b74a73912/);
 
 });
 
-test("homepage and a project detail page have no automated accessibility violations", async ({ page }) => {
-  for (const route of ["/", "/projects/fault-tolerant-transformer-lab"]) {
+test("homepage and backend evidence routes have no automated accessibility violations", async ({ page }) => {
+  for (const route of ["/", "/recruiting", "/projects/distributed-scale-validation-platform", "/projects/fault-tolerant-transformer-lab"]) {
     await page.goto(route);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(results.violations).toEqual([]);

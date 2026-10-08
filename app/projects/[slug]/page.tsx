@@ -200,6 +200,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           ) : null}
         </div>
       </section>
+      {project.evidenceLinks ? (
+        <div className="inline-links" aria-label="Pinned implementation and raw evidence">
+          {project.evidenceLinks.map((evidence) => <a className="text-link" data-spectrum-option href={evidence.url} key={evidence.url} rel="noreferrer">{evidence.label} ↗</a>)}
+        </div>
+      ) : null}
     </div>
   );
 }

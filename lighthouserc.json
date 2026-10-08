@@ -6,6 +6,8 @@
       "url": [
         "http://localhost:3000/",
         "http://localhost:3000/experience",
+        "http://localhost:3000/recruiting",
+        "http://localhost:3000/projects/distributed-scale-validation-platform",
         "http://localhost:3000/projects/fault-tolerant-transformer-lab"
       ],
       "numberOfRuns": 3

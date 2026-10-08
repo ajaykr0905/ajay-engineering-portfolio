@@ -1,0 +1,41 @@
+A submission API that writes a job to PostgreSQL and then publishes to RabbitMQ has a gap: the database can accept the job while the broker never receives its message. Reversing the order can deliver work that the API never durably accepted. A transactional outbox records the job and its publication intent in the same database transaction.
+
+The [durable backend](https://github.com/ajaykr0905/distributed-scale-validation-lab/tree/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6) implements this contract in `6b01125cb71d49fc2fba1cf009aeb7d45e61cab6`. Separate API, dispatcher, and worker processes share PostgreSQL and RabbitMQ. The original in-memory runner remains available as a separate functional baseline.
+
+## Put acceptance and intent behind one commit
+
+The submission transaction inserts a stable job identity, the canonical payload and its fingerprint, and an attempt-one outbox record. HTTP 202 follows commit. An identical repeated key returns the same job with HTTP 200; changing the payload under that key returns 409. JSON field order does not change identity because the typed endpoint is canonicalized before hashing.
+
+<ol className="article-flow" aria-label="Durable acceptance and outbox publication">
+  <li className="article-flow-step"><span className="article-flow-index">01</span><strong>Accept</strong><span>Commit a job and its publication intent together.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">02</span><strong>Dispatch</strong><span>Publish the stable identity and wait for broker confirmation.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">03</span><strong>Record</strong><span>Mark the confirmed outbox item as sent.</span></li>
+  <li className="article-flow-step"><span className="article-flow-index">04</span><strong>Recover</strong><span>Retry unsent work; workers absorb repeated publication.</span></li>
+</ol>
+
+The dispatcher selects a due unsent row with `FOR UPDATE SKIP LOCKED`, publishes persistently, waits for a broker confirmation, sets `sent_at`, and commits. Concurrent dispatchers skip locked rows. The transaction intentionally keeps its row lock during publication; a ten-second operation deadline bounds that network wait. This simple contract uses database rollback to release ownership rather than introducing a lease state machine.
+
+## Publication can remain ambiguous
+
+If RabbitMQ receives a message but the dispatcher dies before recording success, the outbox item will be retried. This is an intentional duplicate window. The outbox prevents forgetting publication intent; it does not create exactly-once delivery. A stable message identity and an idempotent worker are still required. [RabbitMQ’s confirmation guide](https://www.rabbitmq.com/docs/confirms) explains the producer-side acknowledgement boundary.
+
+## Rejected approaches
+
+Deleting intent before publication can lose accepted work. Marking it sent without a confirmation assumes success that has not been observed. Keeping only an in-memory retry queue makes recovery depend on the process surviving. Creating a new job identity for each dispatch attempt defeats the worker’s deduplication boundary.
+
+## Reproduce the result
+
+Follow the [pinned README](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/6b01125cb71d49fc2fba1cf009aeb7d45e61cab6/README.md) to start the dedicated public services and export their environment. Then inspect the implementation and run its real-service regressions:
+
+```bash
+git clone https://github.com/ajaykr0905/distributed-scale-validation-lab.git
+cd distributed-scale-validation-lab
+git checkout 6b01125cb71d49fc2fba1cf009aeb7d45e61cab6
+SCALE_LAB_INTEGRATION=1 go test -race -tags=integration ./internal/durable -run 'TestConcurrentAdmissionAndCapacity|TestBrokerFailureKeepsOutboxPending|TestWorkerAndDispatcherProcessDeath' -count=1
+```
+
+The after-publish helper exits with code 86 before marking the row sent. A restarted dispatcher publishes the unsent intent again; processing both deliveries must produce one result and an accounted duplicate. Broker-failure tests require publication intent to remain pending. An independent-process test accepts work during an actual broker stop, restarts the named isolated service, and requires the outage job to complete with consistent durable accounting.
+
+## Limitations
+
+The outbox is a runnable local capability, not exactly-once delivery or a production deployment. Tests use known helper-process exit boundaries and one isolated broker. Holding a row lock through a bounded confirmation wait limits dispatch concurrency. Automated retention, authenticated redrive, multi-tenant key scope, database failover, and HA operation remain out of scope. The [corrected receipt](https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/0a03f985bb78a7a0889e541ece71672b74a73912/artifacts/2026-10-08-recovery-v2.json) describes its measurement boundary; it is one local observation rather than a recovery SLO.

@@ -14,7 +14,7 @@ export default function WritingPage() {
       <header className="page-header" data-cosmos-mask>
         <p className="eyebrow">Writing and evidence</p>
         <h1>Notes that connect implementation to engineering judgment.</h1>
-        <p>Long-form records of the contracts, rejected approaches, executable tests, tradeoffs, and limitations behind the public labs.</p>
+        <p>Implementation-backed articles and concise design notes on delivery guarantees, failure recovery, capacity, and the evidence still needed to validate each claim.</p>
       </header>
       <section className="note-list" aria-label="Technical writing">
         {writingArticles.map((article) => (

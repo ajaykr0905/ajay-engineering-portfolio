@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const localChrome = process.platform === "darwin"
-  ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+const localBrowser = process.platform === "darwin"
+  ? "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
   : undefined;
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL,
-    launchOptions: { executablePath: process.env.CI ? undefined : localChrome },
+    launchOptions: { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH ?? (process.env.CI ? undefined : localBrowser) },
     trace: "on-first-retry",
   },
   projects: [
