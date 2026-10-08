@@ -49,6 +49,24 @@ production verification remain pending. No production capacity, multi-host
 deployment, arbitrary kill timing, database
 failover, or recovery SLO is claimed by these portfolio changes.
 
+### Mobile compactness follow-up
+
+The first PR build failed the existing 6,300 px homepage-height gate at 360 × 800:
+desktop Chromium measured 6,302 px and mobile Chromium 6,301 px on all three CI
+attempts. This was a reproducible layout overflow, not a demonstrated flaky test.
+The backend and transformer preview summaries are now shorter; the complete case
+studies and their evidence limits remain unchanged. No CSS, assertion, threshold,
+or suppression was changed for this fix.
+
+The public Playwright 1.63.0 Linux/amd64 image reproduced the overflow against the
+local production build. Explicitly waiting for loaded fonts measured 6,358/6,357 px
+before the fix and 6,284/6,283 px after it (desktop/mobile presets). The unchanged
+compactness test then passed six runs, three per preset. Lint, type checks, all 52
+unit/data tests, internal-link validation, production build, and the full macOS
+headless browser suite also passed (52 tests, 10 intentional profile skips).
+Diff and secret-pattern review passed. The follow-up still requires fresh normal
+PR CI and production verification before merge/publication is claimed.
+
 Historical release status recorded on 2026-09-23 follows.
 
 ## Monochrome cosmos preview

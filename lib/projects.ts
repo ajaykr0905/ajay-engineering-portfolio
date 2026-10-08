@@ -130,7 +130,7 @@ const projectInput = [
     eyebrow: "Model training reliability",
     visualKey: "transformer",
     summary:
-      "A reproducible CPU transformer lab that restores durable checkpoints after real process kills. Four pinned public-data recovery drills compare independently spawned workers with an uninterrupted control; GPU and serving work remain planned.",
+      "CPU transformer checkpoint recovery after real process kills. Four pinned public-data drills match an independent control; GPU and serving remain planned.",
     currentFocus:
       "Extend the verified process-kill recovery path to asynchronous kill timing, then measure controlled model-quality ablations before adding GPU or serving claims.",
     status: "Runnable Lab",
@@ -288,7 +288,7 @@ const projectInput = [
     eyebrow: "Reliable background jobs",
     visualKey: "distributed",
     summary:
-      "Separate Go API, outbox dispatcher, and RabbitMQ workers persist jobs in PostgreSQL. Real-service recovery tests and single-host measurements are pinned; no production claim.",
+      "Durable Go API, outbox dispatcher, RabbitMQ workers, and PostgreSQL. Pinned recovery tests and single-host measurements; not production.",
     currentFocus:
       "Study admission saturation, authenticated operation, and dependency failover beyond the verified single-host proof.",
     status: "Runnable Lab",
