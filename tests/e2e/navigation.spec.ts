@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { mergedOpenSourceContributions } from "@/lib/open-source";
 import { projects } from "@/lib/projects";
 import { siteConfig } from "@/lib/site";
 
@@ -24,7 +25,24 @@ test("open-source shortcut lands on the live contribution tracker", async ({ pag
   await expect(page).toHaveURL(/\/#open-source$/);
   const tracker = page.locator("#open-source");
   await expect(tracker.getByRole("heading", { name: "Upstream work, accepted." })).toBeVisible();
-  await expect(tracker.getByRole("link")).toHaveCount(3);
+  await expect(tracker.locator(".open-source-count strong")).toHaveText("13");
+
+  const links = tracker.getByRole("link");
+  await expect(links).toHaveCount(13);
+  const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute("href")));
+  expect(new Set(hrefs).size).toBe(13);
+  expect(hrefs).toEqual(mergedOpenSourceContributions.map(({ url }) => url));
+
+  const mergeTimes = tracker.locator("time");
+  expect(await mergeTimes.evaluateAll((elements) => elements.map((element) => element.getAttribute("datetime")))).toEqual(
+    mergedOpenSourceContributions.map(({ mergedAt }) => mergedAt),
+  );
+  await expect(mergeTimes).toHaveText(mergedOpenSourceContributions.map(({ mergedOn }) => mergedOn));
+  await expect(mergeTimes.first()).toHaveText("16 Nov 2026 · UTC");
+  await expect(mergeTimes.last()).toHaveText("01 Oct 2026 · UTC");
+
+  await expect(links.first()).toHaveAccessibleName(/^CrowdStrike\/gofalcon #773(?!\d)/);
+  await expect(links.last()).toHaveAccessibleName(/^nats-io\/nats\.py #1043(?!\d)/);
   await expect(tracker.getByRole("link", { name: /thruwire\/foreman #39/ })).toHaveAttribute(
     "href",
     "https://github.com/thruwire/foreman/pull/39",
@@ -90,6 +108,7 @@ test("backend proof precedes accepted fixes and the recovery case study", async 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(siteConfig.name);
   await expect(page.getByRole("link", { name: "nats-io/nats.py #1043" })).toHaveAttribute("href", "https://github.com/nats-io/nats.py/pull/1043");
   await expect(page.getByRole("link", { name: "prometheus/prometheus #19882" })).toHaveAttribute("href", "https://github.com/prometheus/prometheus/pull/19882");
+  await expect(page.getByRole("link", { name: "See all 13 merged upstream PRs →" })).toHaveAttribute("href", siteConfig.openSourceTrackerPath);
   await expect(page.getByRole("link", { name: "Open the recovery replay" })).toHaveAttribute("href", "/projects/fault-tolerant-transformer-lab#failure-replay");
   await expect(page.locator("main")).toContainText("in-memory functional run");
   await expect(page.getByRole("link", { name: "Watch the 90-second recovery demo" })).toHaveAttribute("href", "https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/cf0ab0f93adc55f74fbdbcce2243dd6ecee3dd68/artifacts/2026-10-08-recovery-demo.mp4");
@@ -273,6 +292,18 @@ test("mobile header stays compact and project anchors clear it", async ({ page }
     return projects.top >= header.bottom + 8;
   })).toBe(true);
 
-  const scrollHeight = await page.evaluate(() => document.documentElement.scrollHeight);
-  expect(scrollHeight).toBeLessThanOrEqual(6_300);
+  // The 6,300 px budget was set when the open-source tracker had three rows. The budget still applies
+  // to the page without the rows after the third one, and every row must stay compact.
+  const { scrollHeight, trackerRowHeights } = await page.evaluate(() => ({
+    scrollHeight: document.documentElement.scrollHeight,
+    trackerRowHeights: Array.from(document.querySelectorAll("#open-source .open-source-list > li"), (row) =>
+      row.getBoundingClientRect().height,
+    ),
+  }));
+  expect(trackerRowHeights).toHaveLength(mergedOpenSourceContributions.length);
+  for (const rowHeight of trackerRowHeights) {
+    expect(rowHeight).toBeLessThanOrEqual(170);
+  }
+  const addedRowsHeight = trackerRowHeights.slice(3).reduce((total, rowHeight) => total + rowHeight, 0);
+  expect(scrollHeight - addedRowsHeight).toBeLessThanOrEqual(6_300);
 });
