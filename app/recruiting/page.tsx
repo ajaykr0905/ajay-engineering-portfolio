@@ -10,12 +10,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/recruiting" },
 };
 
+const featuredFixUrls = new Set<string>([
+  "https://github.com/nats-io/nats.py/pull/1043",
+  "https://github.com/prometheus/prometheus/pull/19882",
+]);
+
 export default function RecruitingPage() {
   const distributed = getProject("distributed-scale-validation-platform")!;
   const transformer = getProject("fault-tolerant-transformer-lab")!;
-  const acceptedFixes = mergedOpenSourceContributions.filter(({ repository }) =>
-    ["nats-io/nats.py", "prometheus/prometheus"].includes(repository),
-  );
+  const acceptedFixes = mergedOpenSourceContributions.filter(({ url }) => featuredFixUrls.has(url));
 
   return (
     <div className="shell page-shell">
@@ -46,6 +49,9 @@ export default function RecruitingPage() {
             </article>
           ))}
         </div>
+        <Link className="text-link" data-spectrum-option href={siteConfig.openSourceTrackerPath}>
+          See all {mergedOpenSourceContributions.length} merged upstream PRs →
+        </Link>
       </section>
 
       <div className="case-study-grid">
