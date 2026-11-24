@@ -22,6 +22,7 @@ export const experience: Experience[] = [
       "Built evidence-driven release qualification across exact container images, service health, contract checks, metrics, traces, and regression pipelines.",
       "Diagnosed dependency and readiness failures across secrets, messaging infrastructure, and downstream services, then documented reusable recovery checks.",
       "Delivered certificate telemetry and API corrections across service boundaries while preserving authorization behavior and redacting internal failure details.",
+      "Built AI-assisted SDLC skills that guide vulnerability remediation from triage to a verified fix against exact container images, now merged into the team's shared skill library.",
     ],
   },
   {

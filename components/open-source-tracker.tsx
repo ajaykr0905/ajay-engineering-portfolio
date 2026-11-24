@@ -1,4 +1,4 @@
-import { mergedOpenSourceContributions } from "@/lib/open-source";
+import { inReviewOpenSourceContributions, mergedOpenSourceContributions } from "@/lib/open-source";
 
 export function OpenSourceTracker() {
   const mergedCount = String(mergedOpenSourceContributions.length).padStart(2, "0");
@@ -50,6 +50,41 @@ export function OpenSourceTracker() {
             </li>
           ))}
         </ol>
+
+        <div className="open-source-in-review">
+          <h3>In review</h3>
+          <ul aria-label="Open-source pull requests in review" className="open-source-review-list">
+            {inReviewOpenSourceContributions.map((review, index) => (
+              <li key={review.url}>
+                <a
+                  className="open-source-card"
+                  data-spectrum-option
+                  href={review.url}
+                  rel="noreferrer"
+                >
+                  <span className="open-source-card-index" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="open-source-card-copy">
+                    <span className="open-source-card-kicker">
+                      {review.repository} <span aria-hidden="true">/</span> {review.pullRequest}
+                    </span>
+                    <strong>{review.title}</strong>
+                    <span className="open-source-impact">{review.impact}</span>
+                    <span className="open-source-evidence">
+                      <span className="open-source-status open-source-status-review">
+                        <span aria-hidden="true" /> In review
+                      </span>
+                      <span>{review.area}</span>
+                      <span>{review.evidence}</span>
+                    </span>
+                  </span>
+                  <span aria-hidden="true" className="open-source-arrow">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

@@ -1102,14 +1102,16 @@ main,
   text-transform: uppercase;
 }
 
-.open-source-list {
+.open-source-list,
+.open-source-review-list {
   margin: 0;
   border-top: 1px solid var(--border);
   padding: 0;
   list-style: none;
 }
 
-.open-source-list li {
+.open-source-list li,
+.open-source-review-list li {
   border-bottom: 1px solid var(--border);
 }
 
@@ -1178,6 +1180,30 @@ main,
   border-radius: 50%;
   background: var(--spectrum-color);
   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--spectrum-color) 12%, transparent);
+}
+
+.open-source-status-review > span {
+  background: var(--warning);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--warning) 12%, transparent);
+}
+
+.open-source-in-review {
+  grid-column: 1 / -1;
+  margin-top: -0.75rem;
+}
+
+@media (min-width: 901px) {
+  .open-source-in-review {
+    grid-column: 2;
+  }
+}
+
+.open-source-in-review h3 {
+  margin: 0 0 0.25rem;
+  color: var(--muted-strong);
+  font: 600 0.78rem/1 var(--font-mono), monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .open-source-arrow {
@@ -1382,6 +1408,20 @@ main,
   margin-bottom: 0.8rem;
   color: var(--text);
   font-size: 1.25rem;
+}
+
+.case-study-body .eyebrow {
+  margin: 1.75rem 0 0.5rem;
+}
+
+.case-study-body > p:not(.experience-summary, .eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.case-study-body .outcome-list {
+  margin-top: 0.5rem;
 }
 
 .note-list {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergedOpenSourceContributions } from "@/lib/open-source";
+import { inReviewOpenSourceContributions, mergedOpenSourceContributions } from "@/lib/open-source";
 
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -10,9 +10,13 @@ function utcDateLabel(timestamp: string) {
 }
 
 describe("open-source contribution evidence", () => {
-  it("publishes the thirteen verified upstream merges, newest first", () => {
-    expect(mergedOpenSourceContributions).toHaveLength(13);
+  it("publishes the seventeen verified upstream merges, newest first", () => {
+    expect(mergedOpenSourceContributions).toHaveLength(17);
     expect(mergedOpenSourceContributions.map(({ repository, pullRequest }) => `${repository}${pullRequest}`)).toEqual([
+      "grafana/clickhouse-datasource#2303",
+      "grafana/clickhouse-datasource#2302",
+      "open-policy-agent/opa#9581",
+      "cedar-policy/cedar#2706",
       "CrowdStrike/gofalcon#773",
       "CrowdStrike/gofalcon#774",
       "grafana/clickhouse-datasource#2251",
@@ -31,6 +35,10 @@ describe("open-source contribution evidence", () => {
 
   it("records GitHub merge timestamps in UTC without silently shifting dates", () => {
     expect(mergedOpenSourceContributions.map(({ mergedAt }) => mergedAt)).toEqual([
+      "2026-11-23T20:04:16Z",
+      "2026-11-23T07:59:25Z",
+      "2026-11-20T12:38:28Z",
+      "2026-11-18T15:41:16Z",
       "2026-11-16T21:58:16Z",
       "2026-11-16T21:57:48Z",
       "2026-11-16T12:41:02Z",
@@ -74,5 +82,21 @@ describe("open-source contribution evidence", () => {
     }
     const prometheus = mergedOpenSourceContributions.find(({ repository }) => repository === "prometheus/prometheus");
     expect(prometheus?.impact).toContain("next scheduled evaluation");
+  });
+
+  it("lists open pull requests separately and never counts them as merged", () => {
+    expect(inReviewOpenSourceContributions).toHaveLength(2);
+    expect(
+      inReviewOpenSourceContributions.map(({ repository, pullRequest }) => `${repository}${pullRequest}`),
+    ).toEqual(["uber/NullAway#2059", "open-telemetry/opentelemetry-rust#3813"]);
+
+    const mergedUrls = new Set(mergedOpenSourceContributions.map(({ url }) => url));
+    for (const review of inReviewOpenSourceContributions) {
+      expect(mergedUrls.has(review.url)).toBe(false);
+      expect(review.evidence).toMatch(/^Open · \d+ checks passed$/);
+      for (const value of Object.values(review)) {
+        expect(value.toLowerCase()).not.toContain("merged");
+      }
+    }
   });
 });
