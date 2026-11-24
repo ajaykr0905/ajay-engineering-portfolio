@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mergedOpenSourceContributions } from "@/lib/open-source";
+import { inReviewOpenSourceContributions, mergedOpenSourceContributions } from "@/lib/open-source";
 import { projects } from "@/lib/projects";
 import { siteConfig } from "@/lib/site";
 
@@ -25,28 +25,39 @@ test("open-source shortcut lands on the live contribution tracker", async ({ pag
   await expect(page).toHaveURL(/\/#open-source$/);
   const tracker = page.locator("#open-source");
   await expect(tracker.getByRole("heading", { name: "Upstream work, accepted." })).toBeVisible();
-  await expect(tracker.locator(".open-source-count strong")).toHaveText("13");
+  const mergedCountLabel = String(mergedOpenSourceContributions.length).padStart(2, "0");
+  await expect(tracker.locator(".open-source-count strong")).toHaveText(mergedCountLabel);
 
-  const links = tracker.getByRole("link");
-  await expect(links).toHaveCount(13);
+  const mergedList = tracker.locator('[aria-label="Merged open-source contributions"]');
+  const links = mergedList.getByRole("link");
+  await expect(links).toHaveCount(mergedOpenSourceContributions.length);
   const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute("href")));
-  expect(new Set(hrefs).size).toBe(13);
+  expect(new Set(hrefs).size).toBe(mergedOpenSourceContributions.length);
   expect(hrefs).toEqual(mergedOpenSourceContributions.map(({ url }) => url));
 
-  const mergeTimes = tracker.locator("time");
+  const mergeTimes = mergedList.locator("time");
   expect(await mergeTimes.evaluateAll((elements) => elements.map((element) => element.getAttribute("datetime")))).toEqual(
     mergedOpenSourceContributions.map(({ mergedAt }) => mergedAt),
   );
   await expect(mergeTimes).toHaveText(mergedOpenSourceContributions.map(({ mergedOn }) => mergedOn));
-  await expect(mergeTimes.first()).toHaveText("16 Nov 2026 · UTC");
+  await expect(mergeTimes.first()).toHaveText("23 Nov 2026 · UTC");
   await expect(mergeTimes.last()).toHaveText("01 Oct 2026 · UTC");
 
-  await expect(links.first()).toHaveAccessibleName(/^CrowdStrike\/gofalcon #773(?!\d)/);
+  await expect(links.first()).toHaveAccessibleName(/^grafana\/clickhouse-datasource #2303(?!\d)/);
   await expect(links.last()).toHaveAccessibleName(/^nats-io\/nats\.py #1043(?!\d)/);
-  await expect(tracker.getByRole("link", { name: /thruwire\/foreman #39/ })).toHaveAttribute(
+  await expect(mergedList.getByRole("link", { name: /thruwire\/foreman #39/ })).toHaveAttribute(
     "href",
     "https://github.com/thruwire/foreman/pull/39",
   );
+
+  const inReviewList = tracker.locator('[aria-label="Open-source pull requests in review"]');
+  await expect(tracker.getByRole("heading", { level: 3, name: "In review" })).toBeVisible();
+  const reviewLinks = inReviewList.getByRole("link");
+  await expect(reviewLinks).toHaveCount(inReviewOpenSourceContributions.length);
+  const reviewHrefs = await reviewLinks.evaluateAll((elements) => elements.map((element) => element.getAttribute("href")));
+  expect(reviewHrefs).toEqual(inReviewOpenSourceContributions.map(({ url }) => url));
+  await expect(inReviewList.locator("time")).toHaveCount(0);
+  await expect(inReviewList).not.toContainText("Merged");
 });
 
 test("primary navigation targets the overview and exposes exactly one current destination", async ({ page }) => {
@@ -108,7 +119,9 @@ test("backend proof precedes accepted fixes and the recovery case study", async 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(siteConfig.name);
   await expect(page.getByRole("link", { name: "nats-io/nats.py #1043" })).toHaveAttribute("href", "https://github.com/nats-io/nats.py/pull/1043");
   await expect(page.getByRole("link", { name: "prometheus/prometheus #19882" })).toHaveAttribute("href", "https://github.com/prometheus/prometheus/pull/19882");
-  await expect(page.getByRole("link", { name: "See all 13 merged upstream PRs →" })).toHaveAttribute("href", siteConfig.openSourceTrackerPath);
+  await expect(
+    page.getByRole("link", { name: `See all ${mergedOpenSourceContributions.length} merged upstream PRs →` }),
+  ).toHaveAttribute("href", siteConfig.openSourceTrackerPath);
   await expect(page.getByRole("link", { name: "Open the recovery replay" })).toHaveAttribute("href", "/projects/fault-tolerant-transformer-lab#failure-replay");
   await expect(page.locator("main")).toContainText("in-memory functional run");
   await expect(page.getByRole("link", { name: "Watch the 90-second recovery demo" })).toHaveAttribute("href", "https://github.com/ajaykr0905/distributed-scale-validation-lab/blob/cf0ab0f93adc55f74fbdbcce2243dd6ecee3dd68/artifacts/2026-10-08-recovery-demo.mp4");
@@ -292,18 +305,28 @@ test("mobile header stays compact and project anchors clear it", async ({ page }
     return projects.top >= header.bottom + 8;
   })).toBe(true);
 
-  // The 6,300 px budget was set when the open-source tracker had three rows. The budget still applies
-  // to the page without the rows after the third one, and every row must stay compact.
-  const { scrollHeight, trackerRowHeights } = await page.evaluate(() => ({
+  // The 6,300 px budget was set when the open-source tracker had three merged rows and no
+  // in-review list. The budget still applies to the page without those data-driven rows, and
+  // every row must stay compact.
+  const { scrollHeight, trackerRowHeights, reviewRowHeights } = await page.evaluate(() => ({
     scrollHeight: document.documentElement.scrollHeight,
     trackerRowHeights: Array.from(document.querySelectorAll("#open-source .open-source-list > li"), (row) =>
       row.getBoundingClientRect().height,
     ),
+    reviewRowHeights: Array.from(document.querySelectorAll("#open-source .open-source-review-list > li"), (row) =>
+      row.getBoundingClientRect().height,
+    ),
   }));
   expect(trackerRowHeights).toHaveLength(mergedOpenSourceContributions.length);
-  for (const rowHeight of trackerRowHeights) {
+  expect(reviewRowHeights).toHaveLength(inReviewOpenSourceContributions.length);
+  for (const rowHeight of [...trackerRowHeights, ...reviewRowHeights]) {
     expect(rowHeight).toBeLessThanOrEqual(170);
   }
-  const addedRowsHeight = trackerRowHeights.slice(3).reduce((total, rowHeight) => total + rowHeight, 0);
+  // Merged rows beyond the original three, plus every in-review card (the in-review list did not
+  // exist when the budget was set), are data-driven additions and are exempt from the flat page
+  // budget below; the heading and spacing around the in-review list are not.
+  const addedRowsHeight =
+    trackerRowHeights.slice(3).reduce((total, rowHeight) => total + rowHeight, 0) +
+    reviewRowHeights.reduce((total, rowHeight) => total + rowHeight, 0);
   expect(scrollHeight - addedRowsHeight).toBeLessThanOrEqual(6_300);
 });

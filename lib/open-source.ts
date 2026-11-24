@@ -13,6 +13,54 @@ export type OpenSourceContribution = {
 // Titles, merge times, approvals and check counts come from GitHub. "N checks passed" counts successful checks only.
 const contributionInput: OpenSourceContribution[] = [
   {
+    repository: "grafana/clickhouse-datasource",
+    pullRequest: "#2303",
+    title: "fix(migration): keep explicit queryType for v4 queries without pluginVersion",
+    area: "Query migration",
+    impact:
+      "Keeps hand-authored and provisioned queries without pluginVersion on their explicit queryType instead of migrating them as v3.",
+    mergedAt: "2026-11-23T20:04:16Z",
+    mergedOn: "23 Nov 2026 · UTC",
+    evidence: "Maintainer approved · 28 checks passed",
+    url: "https://github.com/grafana/clickhouse-datasource/pull/2303",
+  },
+  {
+    repository: "grafana/clickhouse-datasource",
+    pullRequest: "#2302",
+    title: "fix(queryBuilder): handle IN and NOT IN filters on Enum, UUID, IP and Bool columns",
+    area: "Query correctness",
+    impact:
+      "Keeps separate values for builder IN and NOT IN filters on Enum, UUID, IP and Bool columns instead of collapsing them into one.",
+    mergedAt: "2026-11-23T07:59:25Z",
+    mergedOn: "23 Nov 2026 · UTC",
+    evidence: "Maintainer approved · 30 checks passed",
+    url: "https://github.com/grafana/clickhouse-datasource/pull/2302",
+  },
+  {
+    repository: "open-policy-agent/opa",
+    pullRequest: "#9581",
+    title: "docs: Document number differences in Wasm",
+    area: "Policy engine docs",
+    impact:
+      'Documents why Wasm and the Go interpreter can return different number results, for example "1 - 0.9 == 0.1".',
+    mergedAt: "2026-11-20T12:38:28Z",
+    mergedOn: "20 Nov 2026 · UTC",
+    evidence: "Maintainer approved · 11 checks passed",
+    url: "https://github.com/open-policy-agent/opa/pull/9581",
+  },
+  {
+    repository: "cedar-policy/cedar",
+    pullRequest: "#2706",
+    title: "Document that `add_entities_from_json_*` add the schema's actions",
+    area: "Authorization docs",
+    impact:
+      "Corrects the docs so they state that the three methods add the schema's Action entities.",
+    mergedAt: "2026-11-18T15:41:16Z",
+    mergedOn: "18 Nov 2026 · UTC",
+    evidence: "Maintainer approved · 20 checks passed",
+    url: "https://github.com/cedar-policy/cedar/pull/2706",
+  },
+  {
     repository: "CrowdStrike/gofalcon",
     pullRequest: "#773",
     title: "fix(client): don't stop retrying after the backoff 15-minute default",
@@ -177,3 +225,38 @@ function newestMergeFirst(left: OpenSourceContribution, right: OpenSourceContrib
 }
 
 export const mergedOpenSourceContributions = [...contributionInput].sort(newestMergeFirst);
+
+export type OpenSourceReview = {
+  repository: string;
+  pullRequest: `#${number}`;
+  title: string;
+  area: string;
+  impact: string;
+  evidence: string;
+  url: `https://github.com/${string}`;
+};
+
+// Pull requests still open for maintainer review. "N checks passed" counts successful checks
+// reported so far (skipped checks are not counted), not the merge state.
+export const inReviewOpenSourceContributions: OpenSourceReview[] = [
+  {
+    repository: "uber/NullAway",
+    pullRequest: "#2059",
+    title: "Honor unspecified nullness on unmarked generic method returns",
+    area: "Java null safety",
+    impact:
+      "Treats a generic method's return as unspecified instead of nullable when its class carries no nullness marking, so unmarked generic APIs stop raising spurious null-check warnings.",
+    evidence: "Open · 4 checks passed",
+    url: "https://github.com/uber/NullAway/pull/2059",
+  },
+  {
+    repository: "open-telemetry/opentelemetry-rust",
+    pullRequest: "#3813",
+    title: "fix(sdk): preserve absent histogram sums in OTLP",
+    area: "Telemetry export",
+    impact:
+      "Keeps a histogram's sum field absent in OTLP export when no sum was recorded, instead of encoding a misleading zero that downstream metrics consumers would read as a real value.",
+    evidence: "Open · 29 checks passed",
+    url: "https://github.com/open-telemetry/opentelemetry-rust/pull/3813",
+  },
+];

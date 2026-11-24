@@ -1,5 +1,28 @@
 # Release status
 
+## Open-source refresh · 24 November 2026
+
+- Seventeen merged upstream pull requests now appear in the tracker, including
+  four new merges: grafana/clickhouse-datasource #2303 at `2026-11-23T20:04:16Z`,
+  grafana/clickhouse-datasource #2302 at `2026-11-23T07:59:25Z`,
+  open-policy-agent/opa #9581 at `2026-11-20T12:38:28Z`, and cedar-policy/cedar
+  #2706 at `2026-11-18T15:41:16Z`. Two pull requests remain in review:
+  uber/NullAway #2059 and open-telemetry/opentelemetry-rust #3813.
+- Two public-safe production case studies are now on `/experience`, alongside a
+  new AI-assisted SDLC outcome.
+- The recruiting page's merged-PR link text now derives its count from
+  `mergedOpenSourceContributions.length` instead of a hardcoded number, so the
+  e2e assertion stays correct as the tracker grows.
+- The accessibility scan's route list now includes `/experience`.
+
+Local verification passed: lint, type checking, 62 unit/data tests, internal-link
+validation across 42 source files, production build with 21 static pages and
+102 kB shared first-load JavaScript, and 52 desktop/mobile browser tests with
+10 intentional profile skips. Brave runs the macOS browser checks; CI continues
+to use bundled Chromium.
+
+Historical release status recorded on 8 October 2026 follows.
+
 ## Backend positioning revision · 8 October 2026
 
 - Professional identity and metadata use Ajay Kumar Pondugala; the compact header

@@ -268,7 +268,7 @@ test("failure replays expose linked-test provenance and complete manual controls
 });
 
 test("homepage and backend evidence routes have no automated accessibility violations", async ({ page }) => {
-  for (const route of ["/", "/recruiting", "/projects/distributed-scale-validation-platform", "/projects/fault-tolerant-transformer-lab"]) {
+  for (const route of ["/", "/experience", "/recruiting", "/projects/distributed-scale-validation-platform", "/projects/fault-tolerant-transformer-lab"]) {
     await page.goto(route);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(results.violations).toEqual([]);
